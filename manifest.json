@@ -1,0 +1,10 @@
+{
+  "name": "Solar Tú Nguyễn Pro 2s",
+  "short_name": "Solar 2s",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#f1f5f9",
+  "orientation": "portrait"
+}
