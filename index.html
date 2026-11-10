@@ -800,8 +800,22 @@
     const loadToday = d.load_today_kwh !== undefined ? d.load_today_kwh : (etoday + impToday);
     const loadTotal = d.load_total_kwh !== undefined ? d.load_total_kwh : 166.5;
 
-    const excessW = Math.round(d.excess_w || 0);
-    const potentialW = Math.round(d.potential_w || (pac + excessW));
+    const nowDt = new Date();
+    const decH = nowDt.getHours() + nowDt.getMinutes() / 60;
+    let skyCap = 0;
+    if (decH > 6 && decH < 18) {
+      skyCap = Math.round(1450 * Math.pow(Math.max(0, Math.sin(Math.PI * (decH - 6) / 12)), 1.15));
+    }
+    const tempShift = Math.max(0, Math.min(8, ((temp || 52) - 48) * 0.30));
+    const vmpHot = 115.0 - tempShift;
+
+    let excessW = d.excess_w !== undefined ? Math.round(d.excess_w) : 0;
+    let potentialW = d.potential_w !== undefined ? Math.round(d.potential_w) : pac;
+    if (d.excess_w === undefined && ctw <= 30 && (vpv >= vmpHot + 1.5 || ctw <= 18) && skyCap > pac) {
+      const vf = Math.min(1.05, Math.max(0.45, (vpv - (vmpHot - 3.0)) / 15.0));
+      potentialW = Math.max(pac + Math.max(0, -ctw), Math.round(skyCap * vf));
+      excessW = Math.max(0, potentialW - pac);
+    }
     const excessKwh = d.excess_today_kwh !== undefined ? Number(d.excess_today_kwh) : 0;
 
     const selfPct = load > 0 ? Math.min(100, Math.round((Math.min(load, pac) / load) * 100)) : (pac > 0 ? 100 : 0);
@@ -809,7 +823,7 @@
 
     // 4 Hero Boxes
     document.getElementById('valPac').innerText = pac.toLocaleString('vi-VN');
-    document.getElementById('tagSolarMode').innerText = vpv > 80 ? (excessW > 25 ? 'Đang bóp bám tải' : 'Bung 100% nắng') : 'Nghỉ ban đêm';
+    document.getElementById('tagSolarMode').innerText = vpv > 80 ? (excessW > 20 ? 'Đang bóp bám tải' : 'Bung 100% nắng') : 'Nghỉ ban đêm';
     document.getElementById('valEtoday').innerText = etoday.toFixed(2);
     document.getElementById('valEtotal').innerText = etotal.toFixed(1);
 
@@ -817,12 +831,14 @@
     const exHint = document.getElementById('tagExcessHint');
     if (excessW >= 600) {
       exHint.innerText = '❄️ Dư bật máy lạnh!';
-    } else if (excessW >= 100) {
-      exHint.innerText = '💡 Dư bật quạt/sạc';
+    } else if (excessW >= 35) {
+      exHint.innerText = '🔥 Còn dư +' + excessW + ' W';
+    } else if (ctw > 30) {
+      exHint.innerText = `⚡ Thiếu ${ctw}W (Xài hết nắng)`;
     } else {
-      exHint.innerText = vpv > 80 ? 'Đã dùng hết nắng' : 'Chờ nắng';
+      exHint.innerText = vpv > 80 ? 'Đã dùng sạch nắng' : 'Chờ nắng';
     }
-    document.getElementById('lblPotential').innerText = `Nắng mái: ~${potentialW} W`;
+    document.getElementById('lblPotential').innerText = `Đỉnh nắng lúc này: ~${potentialW} W`;
     document.getElementById('valExcessKwh').innerText = excessKwh.toFixed(2);
 
     document.getElementById('valLoad').innerText = load.toLocaleString('vi-VN');
