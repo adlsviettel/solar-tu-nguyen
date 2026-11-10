@@ -2,16 +2,15 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Solar 2s">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon.svg">
-<title>Solar Tú Nguyễn Pro</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon.svg">
+<title>Solar Tú Nguyễn • Giám Sát 2 Giây</title>
 <style>
-  /* Theme Variables: Default Clean Light Mode (like Solarman Smart) + Dark Mode */
   :root {
     --bg: #f1f5f9;
     --card: #ffffff;
@@ -20,1351 +19,1172 @@
     --text: #0f172a;
     --muted: #64748b;
     --solar: #d97706;
+    --solar-line: #f59e0b;
     --solar-bg: #fffbeb;
     --solar-bd: #fde68a;
     --load: #059669;
+    --load-line: #10b981;
     --load-bg: #ecfdf5;
     --load-bd: #a7f3d0;
     --grid: #dc2626;
+    --grid-line: #ef4444;
     --grid-bg: #fef2f2;
     --grid-bd: #fecaca;
-    --grid-ok: #0284c7;
-    --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-    --nav-bg: rgba(255, 255, 255, 0.95);
-    --grid-line: #e2e8f0;
+    --accent: #2563eb;
+    --shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
   }
 
   body.dark {
-    --bg: #070b14;
+    --bg: #0b1120;
     --card: #111827;
     --card-sub: #1e293b;
     --border: #1f2937;
     --text: #f8fafc;
     --muted: #94a3b8;
-    --solar: #f59e0b;
+    --solar: #fbbf24;
+    --solar-line: #f59e0b;
     --solar-bg: rgba(245, 158, 11, 0.12);
-    --solar-bd: rgba(245, 158, 11, 0.35);
-    --load: #10b981;
+    --solar-bd: rgba(245, 158, 11, 0.32);
+    --load: #34d399;
+    --load-line: #10b981;
     --load-bg: rgba(16, 185, 129, 0.12);
-    --load-bd: rgba(16, 185, 129, 0.35);
-    --grid: #f43f5e;
+    --load-bd: rgba(16, 185, 129, 0.32);
+    --grid: #fb7185;
+    --grid-line: #f43f5e;
     --grid-bg: rgba(244, 63, 94, 0.12);
-    --grid-bd: rgba(244, 63, 94, 0.35);
-    --grid-ok: #38bdf8;
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --nav-bg: rgba(15, 23, 42, 0.95);
-    --grid-line: #1e293b;
+    --grid-bd: rgba(244, 63, 94, 0.32);
+    --accent: #60a5fa;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.38);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 10px 10px 76px 10px;
-    user-select: none;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom)) 12px;
     transition: background 0.2s, color 0.2s;
+    line-height: 1.4;
   }
 
-  /* Header Bar */
-  .app-header {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 10px 12px; margin-bottom: 10px;
-    box-shadow: var(--shadow);
+  .container {
+    max-width: 1240px;
+    margin: 0 auto;
   }
-  .plant-info { display: flex; align-items: center; gap: 10px; }
-  .plant-logo {
-    width: 38px; height: 38px; border-radius: 11px;
+
+  /* HEADER */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon {
+    width: 42px; height: 42px; border-radius: 12px;
     background: linear-gradient(135deg, #f59e0b, #ea580c);
     display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: #fff;
+    font-size: 22px; color: #fff; flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.28);
   }
-  .plant-title h1 { font-size: 15px; font-weight: 800; color: var(--text); }
-  .plant-title p {
-    font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 6px; margin-top: 2px;
+  .brand-text h1 { font-size: 16px; font-weight: 800; letter-spacing: -0.2px; }
+  .brand-sub {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted); margin-top: 2px; font-weight: 600;
   }
-  .live-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 800;
-    background: rgba(16, 185, 129, 0.16); color: #059669;
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 800;
+    background: rgba(16, 185, 129, 0.15); color: var(--load);
   }
-  body.dark .live-pill { color: #34d399; }
-  .live-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: #10b981;
-    animation: blink 1.2s infinite;
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #10b981;
+    animation: pulseDot 1.4s infinite;
   }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.85); } }
 
-  .header-actions { display: flex; align-items: center; gap: 6px; }
-  .hdr-btn {
-    height: 36px; padding: 0 10px; border-radius: 10px;
-    background: var(--card-sub); border: 1px solid var(--border);
-    color: var(--text); display: flex; align-items: center; gap: 4px;
-    font-size: 12px; font-weight: 700; cursor: pointer;
-  }
-  .hdr-btn:active { transform: scale(0.95); }
-
-  /* Smart Status Strip */
-  .smart-strip {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 9px 12px; border-radius: 12px; margin-bottom: 10px;
-    font-size: 11.5px; font-weight: 700;
+  .top-actions { display: flex; align-items: center; gap: 8px; }
+  .money-chip {
     background: var(--load-bg); border: 1px solid var(--load-bd); color: var(--load);
+    padding: 7px 12px; border-radius: 11px; font-size: 12.5px; font-weight: 800;
+  }
+  .icon-btn {
+    height: 38px; padding: 0 12px; border-radius: 11px;
+    background: var(--card-sub); border: 1px solid var(--border);
+    color: var(--text); font-size: 13px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+    transition: 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--solar-line); }
+  .icon-btn:active { transform: scale(0.96); }
+
+  /* RESPONSIVE DASHBOARD GRID */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 980px) {
+    .dash-grid {
+      grid-template-columns: 440px 1fr;
+      align-items: start;
+    }
+    .col-right { position: sticky; top: 14px; }
   }
 
-  /* HERO COMPARISON CARD: 3 COLUMNS SIDE BY SIDE (SOLAR vs LOAD vs EVN GRID) */
-  .compare-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 18px; padding: 12px; margin-bottom: 10px;
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 16px;
     box-shadow: var(--shadow);
+    margin-bottom: 12px;
   }
-  .card-head {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 10px;
-  }
-  .card-head-title {
-    font-size: 12px; font-weight: 800; color: var(--text);
-    text-transform: uppercase; letter-spacing: 0.4px;
-  }
-  .card-head-sub { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .card:last-child { margin-bottom: 0; }
 
-  .compare-3col {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+  .sec-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; gap: 8px; flex-wrap: wrap;
   }
-  .cmp-box {
-    border-radius: 14px; padding: 10px 8px; text-align: center;
+  .sec-title {
+    font-size: 13px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.3px; color: var(--text);
+  }
+  .sec-meta { font-size: 12px; font-weight: 700; color: var(--muted); }
+
+  /* 3 KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .kpi-box {
+    border-radius: 16px;
+    padding: 12px 10px;
     border: 1.5px solid var(--border);
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .cmp-solar { background: var(--solar-bg); border-color: var(--solar-bd); }
-  .cmp-load  { background: var(--load-bg);  border-color: var(--load-bd); }
-  .cmp-grid  { background: var(--grid-bg);  border-color: var(--grid-bd); }
+  .kpi-solar { background: var(--solar-bg); border-color: var(--solar-bd); }
+  .kpi-load  { background: var(--load-bg);  border-color: var(--load-bd); }
+  .kpi-gridc { background: var(--grid-bg);  border-color: var(--grid-bd); }
 
-  .cmp-lbl { font-size: 10.5px; font-weight: 800; color: var(--text); opacity: 0.85; }
-  .cmp-val { font-size: 24px; font-weight: 900; margin: 4px 0 2px 0; line-height: 1.1; }
-  .cmp-unit { font-size: 12px; font-weight: 700; }
-  .cmp-tag {
-    display: inline-block; font-size: 10px; font-weight: 800;
-    padding: 2px 6px; border-radius: 6px; margin-bottom: 5px;
-    background: rgba(0,0,0,0.06);
+  .kpi-lbl { font-size: 11px; font-weight: 800; color: var(--text); opacity: 0.85; }
+  .kpi-num { font-size: 26px; font-weight: 900; margin: 6px 0 4px 0; line-height: 1.05; letter-spacing: -0.5px; }
+  .kpi-unit { font-size: 13px; font-weight: 800; }
+  .kpi-badge {
+    display: inline-block; align-self: flex-start;
+    font-size: 10.5px; font-weight: 800; padding: 3px 7px; border-radius: 7px;
+    background: rgba(0, 0, 0, 0.06); margin-bottom: 8px;
   }
-  body.dark .cmp-tag { background: rgba(255,255,255,0.08); }
-  .cmp-kwh {
-    font-size: 10.5px; color: var(--text); font-weight: 700;
-    padding-top: 5px; border-top: 1px dashed rgba(100,116,139,0.25);
+  body.dark .kpi-badge { background: rgba(255, 255, 255, 0.09); }
+  .kpi-foot {
+    font-size: 11px; font-weight: 700; color: var(--text);
+    padding-top: 6px; border-top: 1px dashed rgba(100, 116, 139, 0.28);
   }
-  .cmp-total { font-size: 9.5px; color: var(--muted); margin-top: 2px; }
+  .kpi-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; font-weight: 600; }
 
-  /* Stacked Comparison Bar: Solar vs EVN */
-  .vs-bar-wrap { margin-top: 12px; }
-  .vs-bar-labels {
-    display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 800; margin-bottom: 5px;
+  /* RATIO BAR */
+  .ratio-box {
+    margin-top: 12px;
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
   }
-  .vs-bar-track {
-    height: 22px; border-radius: 8px; background: var(--grid-bg);
+  .ratio-labels {
+    display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 6px;
+  }
+  .ratio-track {
+    height: 22px; border-radius: 99px; background: var(--grid-bg);
     border: 1px solid var(--grid-bd); overflow: hidden; display: flex;
     font-size: 11px; font-weight: 800; color: #fff;
   }
-  .vs-fill-solar {
+  .ratio-solar {
     background: linear-gradient(90deg, #f59e0b, #10b981);
     display: flex; align-items: center; justify-content: center;
-    transition: width 0.4s ease; white-space: nowrap; overflow: hidden;
+    transition: width 0.35s ease; white-space: nowrap; overflow: hidden;
   }
-  .vs-fill-grid {
+  .ratio-evn {
     background: #ef4444;
     display: flex; align-items: center; justify-content: center;
-    transition: width 0.4s ease; white-space: nowrap; overflow: hidden;
+    transition: width 0.35s ease; white-space: nowrap; overflow: hidden;
+  }
+  .roof-hint {
+    margin-top: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
   }
 
-  /* HIGH-CLARITY CHART CARD */
-  .chart-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 18px; padding: 14px; margin-bottom: 10px;
-    box-shadow: var(--shadow); position: relative;
+  /* ==================== NEW ULTRA-EASY INTERACTIVE CHART ==================== */
+  .time-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 12px;
   }
-  .range-tabs {
-    display: flex; background: var(--card-sub); border: 1px solid var(--border);
-    border-radius: 10px; padding: 3px; gap: 3px; margin-bottom: 10px;
+  .t-tab {
+    border: none; background: transparent; color: var(--muted);
+    font-size: 12px; font-weight: 800; padding: 8px 4px;
+    border-radius: 9px; cursor: pointer; transition: 0.15s;
   }
-  .r-tab {
-    flex: 1; text-align: center; padding: 6px 4px; font-size: 11px; font-weight: 800;
-    color: var(--muted); border-radius: 7px; cursor: pointer; transition: 0.15s;
+  .t-tab.active {
+    background: var(--card);
+    color: var(--solar);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   }
-  .r-tab.active {
-    background: var(--card); color: var(--solar);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-  .chart-toggles {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px;
-  }
-  .c-tog {
-    padding: 7px 6px; border-radius: 11px; border: 1.5px solid var(--border);
-    background: var(--card-sub); cursor: pointer; text-align: center;
-    transition: 0.15s;
-  }
-  .c-tog.off { opacity: 0.35; filter: grayscale(1); }
-  .c-tog-lbl { font-size: 10px; font-weight: 700; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; }
-  .c-tog-val { font-size: 15px; font-weight: 900; margin-top: 2px; }
-  .dot-ind { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
-  .chart-wrap {
-    position: relative; width: 100%;
-    border-radius: 14px; overflow: hidden;
-    background: var(--card-sub); border: 1px solid var(--border);
+  /* Dedicated Inspector / Readout Strip (Never overlaps curves!) */
+  .inspector-bar {
+    background: var(--card-sub);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .chart-toolbar {
+  .inspector-bar.scrubbing {
+    border-color: var(--solar-line);
+    background: var(--solar-bg);
+  }
+  .insp-top {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 7px 9px; border-bottom: 1px solid var(--border);
-    background: var(--card); gap: 6px; flex-wrap: wrap;
+    margin-bottom: 8px; gap: 8px;
   }
-  .zoom-grp { display: flex; gap: 5px; align-items: center; }
-  .z-btn {
-    background: var(--card-sub); border: 1px solid var(--border); color: var(--text);
-    padding: 5px 9px; border-radius: 8px; font-size: 11.5px; font-weight: 800;
-    cursor: pointer; user-select: none; transition: 0.12s;
-  }
-  .z-btn:active { transform: scale(0.93); background: var(--solar-bg); color: var(--solar); }
-  .z-btn.active { background: var(--solar-bg); color: var(--solar); border-color: var(--solar-bd); }
-  .chart-hint {
-    font-size: 10.5px; color: var(--muted); font-weight: 700;
+  .insp-time {
+    font-size: 13px; font-weight: 900; color: var(--text);
     display: flex; align-items: center; gap: 6px;
   }
-  .live-jump-btn {
-    position: absolute; bottom: 34px; right: 12px; z-index: 5;
-    background: #059669; color: #fff; border: none;
-    padding: 6px 11px; border-radius: 99px; font-size: 11px; font-weight: 800;
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4); cursor: pointer;
+  .insp-clear {
+    border: none; background: rgba(15, 23, 42, 0.08); color: var(--text);
+    font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px;
+    cursor: pointer; display: none;
+  }
+  body.dark .insp-clear { background: rgba(255, 255, 255, 0.14); }
+  .inspector-bar.scrubbing .insp-clear { display: inline-block; }
+
+  .series-pills {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .s-pill {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 11px; padding: 7px 10px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 2px;
+    transition: 0.15s; user-select: none;
+  }
+  .s-pill.off { opacity: 0.35; filter: grayscale(1); }
+  .s-pill-lbl {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .s-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .s-pill-val { font-size: 17px; font-weight: 900; }
+
+  /* Canvas Stage: touch-action: pan-y unlocks vertical page scroll on iOS/Android! */
+  .canvas-stage {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  @media (min-width: 980px) {
+    .canvas-stage { height: 360px; }
+  }
+  #solarCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: pan-y;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Smooth Scrubber Slider for Zoomed Windows */
+  .scrubber-wrap {
+    margin-top: 10px;
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 12px;
     display: none;
   }
-  canvas {
-    width: 100%; height: 255px; display: block;
-    touch-action: none; user-select: none; -webkit-user-select: none; cursor: grab;
+  .scrubber-wrap.show { display: block; }
+  .scrubber-head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11.5px; font-weight: 800; color: var(--muted); margin-bottom: 6px;
   }
-  canvas:active { cursor: grabbing; }
-
-  /* Animated Energy Flow Card */
-  .flow-stage { position: relative; width: 100%; height: 225px; margin-top: 4px; }
-  .flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-  .wire-bg { fill: none; stroke: var(--grid-line); stroke-width: 3.5; stroke-linecap: round; }
-  .wire-anim {
-    fill: none; stroke-width: 4; stroke-linecap: round;
-    stroke-dasharray: 6 10; animation: flowMove 0.85s linear infinite;
+  .scrubber-head button {
+    border: none; background: var(--load); color: #fff;
+    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 800; cursor: pointer;
   }
-  .wire-reverse { animation: flowMoveRev 0.85s linear infinite; }
-  .wire-paused { stroke-dasharray: none; opacity: 0.15; animation: none; }
-  @keyframes flowMove { to { stroke-dashoffset: -16; } }
-  @keyframes flowMoveRev { to { stroke-dashoffset: 16; } }
-
-  .f-node {
-    position: absolute; z-index: 2;
-    background: var(--card); border: 1.5px solid var(--border);
-    border-radius: 14px; padding: 7px 9px; width: 124px; text-align: center;
-    box-shadow: var(--shadow);
+  input[type="range"].time-slider {
+    width: 100%; accent-color: var(--solar-line); height: 6px; cursor: pointer;
   }
-  .f-node .n-lbl { font-size: 10px; color: var(--muted); font-weight: 700; }
-  .f-node .n-val { font-size: 17px; font-weight: 900; margin: 1px 0; }
-  .f-node .n-sub { font-size: 9.5px; color: var(--muted); }
-  .node-pv { top: 4px; left: 4px; border-color: var(--solar); }
-  .node-grid { top: 4px; right: 4px; border-color: var(--grid); }
-  .node-batt { bottom: 4px; left: 4px; opacity: 0.8; }
-  .node-load { bottom: 4px; right: 4px; border-color: var(--load); }
 
-  .node-hub {
-    position: absolute; z-index: 3;
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 72px; height: 72px; border-radius: 20px;
-    background: var(--card); border: 2px solid #8b5cf6;
-    box-shadow: 0 0 18px rgba(139, 92, 246, 0.28);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  .chart-foot-tip {
+    margin-top: 8px; font-size: 11.5px; color: var(--muted); font-weight: 600;
+    text-align: center;
   }
-  .node-hub .hub-title { font-size: 9.5px; font-weight: 800; color: #7c3aed; }
-  body.dark .node-hub .hub-title { color: #c4b5fd; }
-  .node-hub .hub-temp { font-size: 10px; font-weight: 800; color: #e11d48; }
 
-  /* Technical Parameters Grid */
-  .param-list { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-  .param-item {
-    background: var(--card-sub); border: 1px solid var(--border);
-    border-radius: 10px; padding: 8px 10px;
+  /* PROPORTIONAL ENERGY FLOW DIAGRAM */
+  .flow-box {
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+  }
+  .flow-svg-full {
+    width: 100%;
+    height: auto;
+    max-height: 230px;
+    display: block;
+  }
+  .flow-wire-bg { fill: none; stroke: var(--border); stroke-width: 4; stroke-linecap: round; }
+  .flow-wire-act {
+    fill: none; stroke-width: 4.5; stroke-linecap: round;
+    stroke-dasharray: 7 11; animation: dashMove 0.85s linear infinite;
+  }
+  .flow-wire-rev { animation: dashMoveRev 0.85s linear infinite; }
+  .flow-wire-off { opacity: 0.12; animation: none; stroke-dasharray: none; }
+  @keyframes dashMove { to { stroke-dashoffset: -18; } }
+  @keyframes dashMoveRev { to { stroke-dashoffset: 18; } }
+
+  /* TECH SPECS GRID */
+  .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .spec-cell {
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 9px 11px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .param-item span { font-size: 11px; color: var(--muted); font-weight: 600; }
-  .param-item b { font-size: 12px; color: var(--text); font-weight: 800; }
+  .spec-cell span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .spec-cell b { font-size: 12.5px; color: var(--text); font-weight: 800; }
 
-  /* Bottom Navigation */
-  .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-    background: var(--nav-bg); backdrop-filter: blur(12px);
-    border-top: 1px solid var(--border);
-    display: flex; justify-content: space-around; padding: 7px 0 9px 0;
-  }
-  .nav-tab {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
-    color: var(--muted); font-size: 10.5px; font-weight: 700; cursor: pointer; flex: 1;
-  }
-  .nav-tab.active { color: var(--solar); }
-  .nav-tab i { font-style: normal; font-size: 16px; }
-
-  /* Hidden Settings Modal */
+  /* SETTINGS MODAL */
   .modal-backdrop {
-    position: fixed; inset: 0; z-index: 50;
-    background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px);
-    display: none; align-items: flex-end; justify-content: center;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; padding: 14px;
   }
   .modal-backdrop.open { display: flex; }
-  .modal-sheet {
-    width: 100%; max-width: 520px; background: var(--card);
-    border-top: 1px solid var(--border); border-radius: 22px 22px 0 0;
-    padding: 18px 16px 26px 16px;
+  .modal-card {
+    width: 100%; max-width: 460px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 22px; padding: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   }
-  .modal-head {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .modal-head h3 { font-size: 16px; font-weight: 800; }
+  .close-x {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--card-sub); color: var(--text); font-weight: 800; cursor: pointer;
   }
-  .modal-head h3 { font-size: 15px; font-weight: 800; color: var(--text); }
-  .close-btn {
-    background: var(--card-sub); border: 1px solid var(--border); color: var(--text);
-    width: 30px; height: 30px; border-radius: 50%; font-size: 14px; cursor: pointer;
+  .preset-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .preset-btn {
+    flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card-sub); color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer;
   }
-  .quick-ips { display: flex; gap: 8px; margin-bottom: 10px; }
-  .chip-btn {
-    flex: 1; background: var(--card-sub); border: 1px solid var(--border); color: var(--text);
-    padding: 8px; border-radius: 9px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+  .field input, .field select {
+    width: 100%; padding: 10px 12px; border-radius: 11px;
+    border: 1px solid var(--border); background: var(--card-sub);
+    color: var(--text); font-size: 14px; font-weight: 700; outline: none;
   }
-  .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .inp-grp { flex: 1; }
-  .inp-grp label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 700; }
-  .inp-grp input, .inp-grp select {
-    width: 100%; background: var(--card-sub); border: 1px solid var(--border);
-    color: var(--text); padding: 9px 11px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  .save-btn {
+    width: 100%; padding: 12px; border-radius: 12px; border: none;
+    background: linear-gradient(135deg, #f59e0b, #ea580c); color: #fff;
+    font-size: 14px; font-weight: 800; cursor: pointer;
   }
-  .btn-full {
-    width: 100%; border: none; border-radius: 11px; padding: 12px;
-    font-size: 13.5px; font-weight: 800; cursor: pointer; margin-top: 4px; color: #fff;
-  }
-  .btn-scan { background: #0284c7; margin-bottom: 8px; }
-  .btn-save { background: #059669; }
-  .diag-box {
-    margin-top: 10px; padding: 8px 10px; border-radius: 9px;
+  .diag-log {
+    margin-top: 12px; padding: 10px; border-radius: 10px;
     background: var(--card-sub); border: 1px solid var(--border);
-    font-family: monospace; font-size: 10.5px; color: var(--muted);
-    max-height: 60px; overflow-y: auto;
+    font-family: monospace; font-size: 11.5px; color: var(--load); word-break: break-word;
+  }
+
+  @media (max-width: 420px) {
+    .kpi-num { font-size: 21px; }
+    .s-pill-val { font-size: 15px; }
+    .money-chip { display: none; }
   }
 </style>
-
-<script>
-if (!window.AndroidSolar) {
-  window._apiBase = '';
-  window._cachedCfg = { ip: '27.77.98.111', sn: '3555314224', mode: 'real' };
-  window._cachedLive = { status: 'offline', pac_w: 0, ct_w: 0, load_w: 0 };
-
-  async function _resolveBackend() {
-    if (location.hostname.endsWith('github.io')) {
-      try {
-        const r = await fetch('https://raw.githubusercontent.com/adlsviettel/solar-tu-nguyen/main/endpoints.json?t=' + Date.now(), { cache: 'no-store' });
-        const ep = await r.json();
-        const candidates = [ep.cloud_url, ep.tunnel_url, 'https://solar-tu-nguyen.onrender.com'].filter(Boolean);
-        for (const base of candidates) {
-          try {
-            const test = await fetch(base + '/api/live', { mode: 'cors' });
-            if (test.ok) { window._apiBase = base; break; }
-          } catch (e) {}
-        }
-      } catch (e) {}
-    }
-  }
-
-  async function _initWeb() {
-    await _resolveBackend();
-    try {
-      const c = await (await fetch(window._apiBase + '/api/config')).json();
-      window._cachedCfg = { ip: c.host || '27.77.98.111', sn: String(c.logger_sn || '3555314224'), mode: c.demo_mode ? 'demo' : 'real' };
-      if (document.getElementById('inpIp')) document.getElementById('inpIp').value = window._cachedCfg.ip;
-      if (document.getElementById('inpSn')) document.getElementById('inpSn').value = window._cachedCfg.sn;
-      if (document.getElementById('inpMode')) document.getElementById('inpMode').value = window._cachedCfg.mode;
-    } catch (e) {}
-    _webPoll();
-    setInterval(_webPoll, 2000);
-    setInterval(_resolveBackend, 45000);
-  }
-
-  async function _webPoll() {
-    try {
-      const r = await fetch(window._apiBase + '/api/live');
-      const d = await r.json();
-      window._cachedLive = d;
-      if (window.updateUI) window.updateUI(d);
-    } catch (e) {}
-  }
-  setTimeout(_initWeb, 80);
-
-  window.AndroidSolar = {
-    getSavedConfig: function() { return JSON.stringify(window._cachedCfg); },
-    saveConfig: function(ip, sn, mode) {
-      window._cachedCfg = { ip: ip, sn: sn, mode: mode };
-      fetch(window._apiBase + '/api/config', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ host: ip, logger_sn: parseInt(sn) || 3555314224, demo_mode: mode === 'demo' })
-      }).then(() => _webPoll());
-    },
-    pollNow: function() { return JSON.stringify(window._cachedLive); },
-    scanLan: function() { return JSON.stringify({ ok: true, ip: '27.77.98.111', sn: '3555314224' }); }
-  };
-}
-</script>
-<style>
-  @media (min-width: 800px) {
-    body { max-width: 960px; margin: 0 auto; padding-top: 18px; }
-    .cmp-val { font-size: 32px; }
-    canvas { height: 260px; }
-  }
-</style>
-
 </head>
 <body>
 
-  <!-- Header Bar with Light/Dark Toggle + Settings Button -->
-  <div class="app-header">
-    <div class="plant-info">
-      <div class="plant-logo">☀️</div>
-      <div class="plant-title">
-        <h1>Solar Tú Nguyễn</h1>
-        <p>
-          <span class="live-pill" id="statusPill">
-            <span class="live-dot" id="statusDot"></span>
-            <span id="statusText">ONLINE 2s</span>
+<div class="container">
+  <!-- TOP HEADER -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-icon">☀️</div>
+      <div class="brand-text">
+        <h1>Solar Tú Nguyễn • 1.89 kWp</h1>
+        <div class="brand-sub">
+          <span class="status-pill" id="statusPill">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">ĐANG KẾT NỐI...</span>
           </span>
-          <span id="lastTime">--:--:--</span>
-        </p>
+          <span>Cập nhật: <b id="lastTime">--:--:--</b></span>
+        </div>
       </div>
     </div>
-    <div class="header-actions">
-      <button class="hdr-btn" id="themeBtn" onclick="toggleTheme()">🌙 Tối</button>
-      <button class="hdr-btn" onclick="openSettings()">⚙️</button>
+    <div class="top-actions">
+      <div class="money-chip" id="moneyChip">💰 Hôm nay: 0đ</div>
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()">🌙 Tối</button>
+      <button class="icon-btn" onclick="openSettings()">⚙️ Cài đặt</button>
     </div>
+  </header>
+
+  <main class="dash-grid">
+    <!-- LEFT COLUMN: KPI SUMMARY + FLOW & SPECS -->
+    <div class="col-left">
+      <section class="card">
+        <div class="sec-head">
+          <span class="sec-title">⚡ Công Suất Thực Tế (2 Giây/Lần)</span>
+          <span class="sec-meta" id="moneySubMobile">Tiết kiệm: 0đ</span>
+        </div>
+
+        <div class="kpi-grid">
+          <!-- SOLAR -->
+          <div class="kpi-box kpi-solar">
+            <div>
+              <div class="kpi-lbl">☀️ MẶT TRỜI</div>
+              <div class="kpi-num" style="color:var(--solar)"><span id="valPac">0</span> <span class="kpi-unit">W</span></div>
+              <div class="kpi-badge" id="tagExcess" style="color:var(--solar)">Đang đo...</div>
+            </div>
+            <div>
+              <div class="kpi-foot">Nay: <b id="valEtoday">0.00</b> kWh</div>
+              <div class="kpi-sub">Tổng: <span id="valEtotal">0.0</span> kWh</div>
+            </div>
+          </div>
+
+          <!-- HOME LOAD -->
+          <div class="kpi-box kpi-load">
+            <div>
+              <div class="kpi-lbl">🏠 NHÀ DÙNG</div>
+              <div class="kpi-num" style="color:var(--load)"><span id="valLoad">0</span> <span class="kpi-unit">W</span></div>
+              <div class="kpi-badge" id="tagSelfPct" style="color:var(--load)">Tự chủ 0%</div>
+            </div>
+            <div>
+              <div class="kpi-foot">Nay: <b id="valLoadToday">0.00</b> kWh</div>
+              <div class="kpi-sub">Tổng: <span id="valLoadTotal">0.0</span> kWh</div>
+            </div>
+          </div>
+
+          <!-- EVN GRID -->
+          <div class="kpi-box kpi-gridc">
+            <div>
+              <div class="kpi-lbl" id="lblGridTitle">🔌 LƯỚI EVN</div>
+              <div class="kpi-num" style="color:var(--grid)"><span id="valCtAbs">0</span> <span class="kpi-unit">W</span></div>
+              <div class="kpi-badge" id="tagGridState" style="color:var(--grid)">Lấy 0%</div>
+            </div>
+            <div>
+              <div class="kpi-foot">Mua: <b id="valImpToday">0.00</b> kWh</div>
+              <div class="kpi-sub">Tổng: <span id="valImpTotal">0.0</span> kWh</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ratio-box">
+          <div class="ratio-labels">
+            <span style="color:var(--solar)">☀️ Mặt trời gánh: <b id="barSolarTxt">0W (0%)</b></span>
+            <span style="color:var(--grid)" id="barGridWrap">🔌 EVN phụ: <b id="barGridTxt">0W (0%)</b></span>
+          </div>
+          <div class="ratio-track">
+            <div class="ratio-solar" id="barSolarFill" style="width:100%">100%</div>
+            <div class="ratio-evn" id="barGridFill" style="width:0%"></div>
+          </div>
+          <div class="roof-hint">
+            <span id="excessText">☀️ Đang đồng bộ dữ liệu biến tần INVT...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLEAN PROPORTIONAL SVG ENERGY FLOW + TECH SPECS -->
+      <section class="card">
+        <div class="sec-head">
+          <span class="sec-title">🔄 Sơ Đồ Dòng Điện & Kỹ Thuật Máy</span>
+          <span class="sec-meta" id="hdrTemp">IGBT: --°C</span>
+        </div>
+
+        <div class="flow-box">
+          <svg class="flow-svg-full" viewBox="0 0 460 200">
+            <!-- Connecting Wires -->
+            <path class="flow-wire-bg" d="M 135 52 L 190 52 L 210 85" />
+            <path id="wirePv" class="flow-wire-act flow-wire-off" stroke="#f59e0b" d="M 135 52 L 190 52 L 210 85" />
+
+            <path class="flow-wire-bg" d="M 325 52 L 270 52 L 250 85" />
+            <path id="wireGrid" class="flow-wire-act flow-wire-off" stroke="#ef4444" d="M 325 52 L 270 52 L 250 85" />
+
+            <path class="flow-wire-bg" d="M 250 118 L 270 150 L 325 150" />
+            <path id="wireLoad" class="flow-wire-act flow-wire-off" stroke="#10b981" d="M 250 118 L 270 150 L 325 150" />
+
+            <path class="flow-wire-bg" stroke-dasharray="4 5" d="M 135 150 L 190 150 L 210 118" />
+
+            <!-- PV Node -->
+            <rect x="8" y="16" width="128" height="72" rx="14" fill="var(--card)" stroke="#f59e0b" stroke-width="2"/>
+            <text x="72" y="36" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">☀️ GIÀN PIN 3x630W</text>
+            <text x="72" y="59" text-anchor="middle" font-size="18" font-weight="900" fill="#d97706" id="svgPvW">0 W</text>
+            <text x="72" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)" id="svgPvSub">0.0V • 0.00A</text>
+
+            <!-- Grid Node -->
+            <rect x="324" y="16" width="128" height="72" rx="14" fill="var(--card)" stroke="#ef4444" stroke-width="2"/>
+            <text x="388" y="36" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🗼 LƯỚI ĐIỆN EVN</text>
+            <text x="388" y="59" text-anchor="middle" font-size="18" font-weight="900" fill="#dc2626" id="svgGridW">0 W</text>
+            <text x="388" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)" id="svgGridSub">225V • 50.0Hz</text>
+
+            <!-- Center Inverter Hub -->
+            <rect x="184" y="66" width="92" height="70" rx="18" fill="var(--card)" stroke="#8b5cf6" stroke-width="2.5"/>
+            <text x="230" y="88" text-anchor="middle" font-size="11" font-weight="900" fill="#7c3aed">INVT 3kW</text>
+            <text x="230" y="108" text-anchor="middle" font-size="15" font-weight="900" fill="var(--text)">⚡</text>
+            <text x="230" y="126" text-anchor="middle" font-size="11.5" font-weight="800" fill="#e11d48" id="svgTemp">--°C</text>
+
+            <!-- Battery Future Node -->
+            <rect x="8" y="114" width="128" height="70" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="1.5" opacity="0.8"/>
+            <text x="72" y="135" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🔋 BUS DC NỘI BỘ</text>
+            <text x="72" y="157" text-anchor="middle" font-size="16" font-weight="900" fill="var(--text)" id="svgVbus">368.9 V</text>
+            <text x="72" y="174" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">Bám tải CT Zero-Export</text>
+
+            <!-- Home Load Node -->
+            <rect x="324" y="114" width="128" height="70" rx="14" fill="var(--card)" stroke="#10b981" stroke-width="2"/>
+            <text x="388" y="135" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🏠 TẢI TRONG NHÀ</text>
+            <text x="388" y="157" text-anchor="middle" font-size="18" font-weight="900" fill="#059669" id="svgLoadW">0 W</text>
+            <text x="388" y="174" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)" id="svgExpSub">Đẩy lưới: 0.00 kWh</text>
+          </svg>
+        </div>
+
+        <div class="specs-grid">
+          <div class="spec-cell"><span>Áp DC giàn pin</span><b id="spVpv">0.0 V</b></div>
+          <div class="spec-cell"><span>Dòng DC giàn pin</span><b id="spIpv">0.00 A</b></div>
+          <div class="spec-cell"><span>Điện áp lưới AC</span><b id="spVgrid">0.0 V</b></div>
+          <div class="spec-cell"><span>Tần số lưới EVN</span><b id="spFreq">50.00 Hz</b></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN: SUPER INTUITIVE SOLARMAN-STYLE CHART -->
+    <div class="col-right">
+      <section class="card">
+        <div class="sec-head">
+          <span class="sec-title">📈 Biểu Đồ Công Suất Trong Ngày</span>
+          <span class="sec-meta" id="chartWindowLabel">Khung: Cả ngày (06:00 – 18:30)</span>
+        </div>
+
+        <!-- 4 Simple 1-Tap Timeframe Presets -->
+        <div class="time-tabs">
+          <button class="t-tab active" id="tabDay" onclick="setRangeMode('day')">📅 Cả ngày</button>
+          <button class="t-tab" id="tab3h" onclick="setRangeMode('3h')">🕒 3 Giờ</button>
+          <button class="t-tab" id="tab1h" onclick="setRangeMode('1h')">🕐 1 Giờ</button>
+          <button class="t-tab" id="tab15m" onclick="setRangeMode('15m')">⚡ 15 Phút</button>
+        </div>
+
+        <!-- Dedicated Readout / Inspector Header (Always Clear, Never Blocks Chart!) -->
+        <div class="inspector-bar" id="inspectorBar">
+          <div class="insp-top">
+            <div class="insp-time" id="inspTitle">🟢 Đang phát trực tiếp • Hiện tại</div>
+            <button class="insp-clear" onclick="clearInspect()">✕ Quay về Live</button>
+          </div>
+          <div class="series-pills">
+            <div class="s-pill" id="pillPv" onclick="toggleLine('pv')" style="border-color:var(--solar-bd)">
+              <div class="s-pill-lbl"><span class="s-dot" style="background:#f59e0b"></span>Mặt trời</div>
+              <div class="s-pill-val" style="color:var(--solar)" id="inspPv">0 W</div>
+            </div>
+            <div class="s-pill" id="pillLoad" onclick="toggleLine('load')" style="border-color:var(--load-bd)">
+              <div class="s-pill-lbl"><span class="s-dot" style="background:#10b981"></span>Nhà dùng</div>
+              <div class="s-pill-val" style="color:var(--load)" id="inspLoad">0 W</div>
+            </div>
+            <div class="s-pill" id="pillGrid" onclick="toggleLine('grid')" style="border-color:var(--grid-bd)">
+              <div class="s-pill-lbl"><span class="s-dot" style="background:#ef4444"></span>Lưới EVN</div>
+              <div class="s-pill-val" style="color:var(--grid)" id="inspGrid">0 W</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Razor-Sharp Retina Canvas -->
+        <div class="canvas-stage" id="canvasStage">
+          <canvas id="solarCanvas"></canvas>
+        </div>
+
+        <!-- Clean Scrubber Slider (Only appears in 15m / 1h / 3h modes to pan smoothly without fighting touch!) -->
+        <div class="scrubber-wrap" id="scrubberWrap">
+          <div class="scrubber-head">
+            <span id="scrubberTxt">⏪ Kéo thanh trượt để xem lại giờ trước</span>
+            <button id="btnBackLive" onclick="snapSliderToLive()" style="display:none">⏩ Về Hiện Tại</button>
+          </div>
+          <input type="range" class="time-slider" id="timeSlider" min="0" max="100" value="100" oninput="onSliderScrub(this.value)">
+        </div>
+
+        <div class="chart-foot-tip">
+          💡 Chạm hoặc lướt ngón tay / chuột ngang trên biểu đồ để xem chính xác từng phút • Bấm ô màu phía trên để ẩn/hiện đường vẽ
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-backdrop" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>⚙️ Cấu Hình Kết Nối INVT 3kW</h3>
+      <button class="close-x" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="document.getElementById('inpIp').value='27.77.98.111'">🌐 Mạng Ngoài (WAN)</button>
+      <button class="preset-btn" onclick="document.getElementById('inpIp').value='192.168.1.75'">🏠 WiFi Nhà (LAN)</button>
+    </div>
+    <div class="field">
+      <label>Địa chỉ IP Biến Tần (Tự động dự phòng WAN/LAN)</label>
+      <input type="text" id="inpIp" value="27.77.98.111">
+    </div>
+    <div class="field">
+      <label>Mã SN WiFi Logger Solarman V5</label>
+      <input type="number" id="inpSn" value="3555314224">
+    </div>
+    <div class="field">
+      <label>Chế độ</label>
+      <select id="inpMode">
+        <option value="real">⚡ Đọc Thật Trực Tiếp (2 giây/lần)</option>
+        <option value="demo">🎮 Chế Độ Mô Phỏng</option>
+      </select>
+    </div>
+    <button class="save-btn" onclick="saveSettings()">💾 Lưu & Kết Nối Ngay</button>
+    <div class="diag-log" id="logBox">Đang sẵn sàng...</div>
   </div>
-
-  <!-- Smart Notification Strip -->
-  <div class="smart-strip" id="excessBanner">
-    <span id="excessText">🟢 Đang đọc dữ liệu thời gian thực 2 giây/lần...</span>
-    <span id="moneyBadge" style="white-space:nowrap;margin-left:6px">💰 0 đ</span>
-  </div>
-
-  <!-- 1. HERO 3-COLUMN SIDE-BY-SIDE COMPARISON (SOLAR vs HOME LOAD vs EVN GRID) -->
-  <div class="compare-card" id="secCompare">
-    <div class="card-head">
-      <span class="card-head-title">⚡ So Sánh Trực Tiếp: Mặt Trời vs Nhà Dùng vs EVN</span>
-      <span class="card-head-sub">Chu kỳ: 2s</span>
-    </div>
-
-    <div class="compare-3col">
-      <!-- Column 1: Solar PV -->
-      <div class="cmp-box cmp-solar">
-        <div>
-          <div class="cmp-lbl">☀️ MẶT TRỜI PHÁT</div>
-          <div class="cmp-val" style="color:var(--solar)"><span id="valPac">0</span> <span class="cmp-unit">W</span></div>
-          <div class="cmp-tag" style="color:#b45309;background:rgba(245,158,11,0.18)" id="tagExcessW">🔥 Dư: ~0 W</div>
-        </div>
-        <div>
-          <div class="cmp-kwh" id="lblPotential">Tiềm năng: ~0 W</div>
-          <div class="cmp-total">Hôm nay: <b id="valEtoday">0.0</b> kWh (Tổng: <span id="valEtotal">0.0</span>)</div>
-        </div>
-      </div>
-
-      <!-- Column 2: Home Load -->
-      <div class="cmp-box cmp-load">
-        <div>
-          <div class="cmp-lbl">🏠 NHÀ DÙNG</div>
-          <div class="cmp-val" style="color:var(--load)"><span id="valLoad">0</span> <span class="cmp-unit">W</span></div>
-          <div class="cmp-tag" style="color:var(--load)" id="tagSelfPct">Tự cấp 0%</div>
-        </div>
-        <div>
-          <div class="cmp-kwh">Hôm nay: <span id="valLoadToday">0.0</span> kWh</div>
-          <div class="cmp-total">Tổng: <span id="valLoadTotal">0.0</span> kWh</div>
-        </div>
-      </div>
-
-      <!-- Column 3: EVN Grid -->
-      <div class="cmp-box cmp-grid" id="boxGrid">
-        <div>
-          <div class="cmp-lbl" id="lblGridTitle">🔌 LƯỚI EVN</div>
-          <div class="cmp-val" style="color:var(--grid)" id="valGridColor"><span id="valCtAbs">0</span> <span class="cmp-unit">W</span></div>
-          <div class="cmp-tag" style="color:var(--grid)" id="tagGridState">Lấy EVN 0%</div>
-        </div>
-        <div>
-          <div class="cmp-kwh">Mua: <span id="valImpToday">0.0</span> kWh</div>
-          <div class="cmp-total">Tổng mua: <span id="valImpTotal">0.0</span> kWh</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Visual Comparison Bar: How much of Home Load is fed by Solar vs EVN -->
-    <div class="vs-bar-wrap">
-      <div class="vs-bar-labels">
-        <span style="color:var(--solar)">☀️ Mặt trời cấp: <span id="barSolarW">0W (0%)</span></span>
-        <span style="color:var(--grid)" id="barGridLbl">🔌 Lưới EVN cấp: <span id="barGridW">0W (0%)</span></span>
-      </div>
-      <div class="vs-bar-track">
-        <div class="vs-fill-solar" id="barSolarFill" style="width:75%">75%</div>
-        <div class="vs-fill-grid" id="barGridFill" style="width:25%">25%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. INTERACTIVE TOUCH / PINCH-ZOOM / TAP-TO-INSPECT SMOOTH SPLINE CHART -->
-  <div class="chart-card" id="secChart">
-    <div class="card-head">
-      <span class="card-head-title">📈 Biểu Đồ Tương Tác (Vuốt Kéo • Chụm 2 Ngón Zoom • Chạm Điểm)</span>
-      <span class="card-head-sub" id="chartScaleInfo">06:00 - Hiện tại</span>
-    </div>
-
-    <!-- Interactive Legend / Filter Buttons -->
-    <div class="chart-toggles">
-      <div class="c-tog" id="togPv" onclick="toggleSeries('pv')" style="border-color:var(--solar)">
-        <div class="c-tog-lbl"><i class="dot-ind" style="background:#f59e0b"></i>Mặt trời</div>
-        <div class="c-tog-val" style="color:var(--solar)" id="legPv">0 W</div>
-      </div>
-      <div class="c-tog" id="togLoad" onclick="toggleSeries('load')" style="border-color:var(--load)">
-        <div class="c-tog-lbl"><i class="dot-ind" style="background:#10b981"></i>Nhà dùng</div>
-        <div class="c-tog-val" style="color:var(--load)" id="legLoad">0 W</div>
-      </div>
-      <div class="c-tog" id="togGrid" onclick="toggleSeries('grid')" style="border-color:var(--grid)">
-        <div class="c-tog-lbl"><i class="dot-ind" style="background:#ef4444"></i>Lưới EVN</div>
-        <div class="c-tog-val" style="color:var(--grid)" id="legGrid">0 W</div>
-      </div>
-    </div>
-
-    <div class="chart-wrap">
-      <!-- Top Interactive Toolbar inside Chart Box -->
-      <div class="chart-toolbar">
-        <div class="zoom-grp">
-          <button class="z-btn" onclick="zoomChart(0.65)" title="Phóng to">🔍+ Phóng to</button>
-          <button class="z-btn" onclick="zoomChart(1.5)" title="Thu nhỏ">🔍- Thu nhỏ</button>
-          <button class="z-btn" id="btnViewAll" onclick="resetZoomAll()">📅 Toàn cảnh</button>
-          <button class="z-btn" id="btnViewLive" onclick="focusLiveDetail()">⚡ Chi tiết gần nhất</button>
-        </div>
-        <div class="chart-hint" id="chartHintTxt">👆 Vuốt ngang để kéo • Chạm điểm để xem</div>
-      </div>
-
-      <canvas id="liveChart" width="760" height="310"></canvas>
-      <button class="live-jump-btn" id="btnJumpLive" onclick="jumpToNow()">⏩ Về Hiện Tại</button>
-    </div>
-  </div>
-
-  <!-- 3. ANIMATED ENERGY FLOW & TECHNICAL DETAILS -->
-  <div class="compare-card" id="secFlow">
-    <div class="card-head">
-      <span class="card-head-title">🔄 Sơ Đồ Dòng Chảy & Thông Số Kỹ Thuật</span>
-      <span class="card-head-sub" id="valTempHdr">Nhiệt độ: --°C</span>
-    </div>
-
-    <div class="flow-stage">
-      <svg class="flow-svg" viewBox="0 0 360 225" preserveAspectRatio="none">
-        <path class="wire-bg" d="M 75 68 L 75 112 L 145 112" />
-        <path id="wirePv" class="wire-anim" stroke="#f59e0b" d="M 75 68 L 75 112 L 145 112" />
-
-        <path class="wire-bg" d="M 285 68 L 285 112 L 215 112" />
-        <path id="wireGrid" class="wire-anim" stroke="#ef4444" d="M 285 68 L 285 112 L 215 112" />
-
-        <path class="wire-bg" d="M 215 112 L 285 112 L 285 158" />
-        <path id="wireLoad" class="wire-anim" stroke="#10b981" d="M 215 112 L 285 112 L 285 158" />
-
-        <path class="wire-bg" stroke-dasharray="3 5" d="M 75 158 L 75 112 L 145 112" />
-      </svg>
-
-      <div class="f-node node-pv">
-        <div class="n-lbl">☀️ Tấm Pin DC</div>
-        <div class="n-val" style="color:var(--solar)"><span id="fVpv">0.0</span>V</div>
-        <div class="n-sub">Dòng: <b id="fIpv">0.00</b>A (<span id="fPdc">0</span>W)</div>
-      </div>
-
-      <div class="f-node node-grid">
-        <div class="n-lbl">🗼 Điện Lưới AC</div>
-        <div class="n-val" style="color:var(--grid)"><span id="fVgrid">0.0</span>V</div>
-        <div class="n-sub"><span id="fIgrid">0.00</span>A • <span id="fFreq">50.0</span>Hz</div>
-      </div>
-
-      <div class="node-hub">
-        <div class="hub-title">INVT 3kW</div>
-        <div style="font-size:18px">⚡</div>
-        <div class="hub-temp" id="valTemp">--°C</div>
-      </div>
-
-      <div class="f-node node-batt">
-        <div class="n-lbl">🔋 Pin 24V</div>
-        <div class="n-val" style="font-size:13px;margin:3px 0;color:var(--muted)">Chờ Lắp</div>
-        <div class="n-sub">1.33 kWh</div>
-      </div>
-
-      <div class="f-node node-load">
-        <div class="n-lbl">📤 Đẩy Lưới Ngày</div>
-        <div class="n-val" style="color:var(--load)"><span id="valExpToday">0.00</span></div>
-        <div class="n-sub">kWh (Tổng: <span id="valExpTotal">0.0</span>)</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom Navigation Bar -->
-  <div class="bottom-nav">
-    <div class="nav-tab active" id="tab1" onclick="scrollToSec('secCompare', 1)">
-      <i>⚡</i><span>So sánh</span>
-    </div>
-    <div class="nav-tab" id="tab2" onclick="scrollToSec('secChart', 2)">
-      <i>📈</i><span>Biểu đồ rõ nét</span>
-    </div>
-    <div class="nav-tab" id="tab3" onclick="scrollToSec('secFlow', 3)">
-      <i>🔄</i><span>Lưu đồ & Kỹ thuật</span>
-    </div>
-    <div class="nav-tab" onclick="openSettings()">
-      <i>⚙️</i><span>Cài đặt</span>
-    </div>
-  </div>
-
-  <!-- Hidden Settings Modal -->
-  <div class="modal-backdrop" id="settingsModal" onclick="if(event.target===this)closeSettings()">
-    <div class="modal-sheet">
-      <div class="modal-head">
-        <h3>⚙️ Cài Đặt Kết Nối Biến Tần INVT</h3>
-        <button class="close-btn" onclick="closeSettings()">✕</button>
-      </div>
-      <div class="quick-ips">
-        <button class="chip-btn" onclick="quickSetIp('27.77.98.111')">🌐 Mạng Ngoài (27.77.98.111)</button>
-        <button class="chip-btn" onclick="quickSetIp('192.168.1.75')">🏠 WiFi Nhà (192.168.1.75)</button>
-      </div>
-      <div class="form-row">
-        <div class="inp-grp">
-          <label>IP Biến Tần (Tự động chuyển WAN/LAN)</label>
-          <input type="text" id="inpIp" value="27.77.98.111">
-        </div>
-        <div class="inp-grp">
-          <label>Mã SN Logger WiFi</label>
-          <input type="number" id="inpSn" value="3555314224">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="inp-grp">
-          <label>Chế độ hoạt động</label>
-          <select id="inpMode">
-            <option value="real">⚡ Đọc Thật Trực Tiếp (TCP 8899)</option>
-            <option value="demo">🎮 Chế Độ Mô Phỏng</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-full btn-scan" onclick="scanInverter()">🔍 Tự Động Quét Tìm IP Trong Mạng WiFi</button>
-      <button class="btn-full btn-save" onclick="saveConfig(); closeSettings();">💾 Lưu Cấu Hình & Đóng</button>
-      <div class="diag-box" id="logBox">Sẵn sàng kết nối...</div>
-    </div>
-  </div>
+</div>
 
 <script>
-  // Live 2s buffer
-  const livePac = [];
-  const liveLoad = [];
-  const liveGrid = [];
-  const liveTime = [];
-  const MAX_LIVE = 30;
+  // ==================== BACKEND AUTO-DISCOVERY (LOCAL + CLOUDFLARE TUNNEL + GITHUB PAGES) ====================
+  let apiBase = '';
+  let latestLive = { pac_w: 0, load_w: 0, ct_w: 0, status: 'offline' };
+  let dayPoints = []; // [{ m: 480, t: '08:00', pv: 350, load: 290, grid: 0 }, ...]
 
-  // Full-day historical log (from 06:00 AM + live updates, persisted in localStorage)
-  let dayLog = [];
+  // Chart State
+  let rangeMode = 'day'; // 'day' | '3h' | '1h' | '15m'
+  let sliderEndIdx = -1; // -1 means locked to latest live point
+  let showPv = true, showLoad = true, showGrid = true;
 
-  // Interactive Viewport State (Continuous Pan & Pinch-Zoom directly on Canvas!)
-  let viewStart = 0;         // Floating index of left edge in dayLog
-  let viewCount = 9999;      // Number of visible points (smaller = zoomed in, larger = zoomed out)
-  let autoFollowLive = true; // True when anchored to right edge (latest live point)
-  let selectedGlobalIdx = -1;// Global index in dayLog when user taps/clicks a specific point
+  // Crosshair / Inspection State
+  let inspectPoint = null; // { m, t, pv, load, grid } or null when live
+  let inspectPinned = false;
 
-  let showPv = true;
-  let showLoad = true;
-  let showGrid = true;
-
-  function initDayHistory() {
-    const todayKey = 'solar_day_v2_' + new Date().toISOString().slice(0, 10);
+  async function resolveApiBase() {
+    if (!location.hostname.endsWith('github.io')) {
+      apiBase = '';
+      return;
+    }
     try {
-      const saved = localStorage.getItem(todayKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 20) {
-          dayLog = parsed;
-          viewCount = dayLog.length;
-          viewStart = 0;
-          return;
-        }
-      }
-    } catch (e) {}
-
-    // Seed high-resolution 1-minute morning history from 06:00 AM based on Bến Tre inverter measurements today
-    const anchors = [
-      { m: 360, pv: 0,   load: 210, grid: 210 }, // 06:00
-      { m: 390, pv: 15,  load: 220, grid: 205 }, // 06:30
-      { m: 414, pv: 95,  load: 260, grid: 165 }, // 06:54
-      { m: 435, pv: 280, load: 340, grid: 60  }, // 07:15
-      { m: 450, pv: 460, load: 490, grid: 30  }, // 07:30
-      { m: 470, pv: 632, load: 583, grid: 0   }, // 07:50
-      { m: 483, pv: 735, load: 872, grid: 137 }, // 08:03
-      { m: 500, pv: 590, load: 610, grid: 20  }, // 08:20
-      { m: 517, pv: 418, load: 357, grid: 0   }, // 08:37
-      { m: 535, pv: 340, load: 330, grid: 0   }, // 08:55
-      { m: 547, pv: 289, load: 247, grid: 0   }, // 09:07
-      { m: 559, pv: 348, load: 337, grid: 0   }, // 09:19
-      { m: 575, pv: 410, load: 380, grid: 0   }, // 09:35
-      { m: 590, pv: 465, load: 395, grid: 0   }  // 09:50
-    ];
-
-    const now = new Date();
-    const curMin = now.getHours() * 60 + now.getMinutes();
-    dayLog = [];
-    for (let m = 360; m <= Math.max(365, curMin); m += 1) {
-      let a0 = anchors[0], a1 = anchors[anchors.length - 1];
-      for (let i = 0; i < anchors.length - 1; i++) {
-        if (m >= anchors[i].m && m <= anchors[i + 1].m) {
-          a0 = anchors[i];
-          a1 = anchors[i + 1];
-          break;
-        }
-      }
-      const span = Math.max(1, a1.m - a0.m);
-      const t = Math.max(0, Math.min(1, (m - a0.m) / span));
-      const mu = (1 - Math.cos(t * Math.PI)) / 2;
-      const pv = Math.round(a0.pv * (1 - mu) + a1.pv * mu);
-      const load = Math.round(a0.load * (1 - mu) + a1.load * mu);
-      const grid = Math.max(0, load - pv);
-      const hh = String(Math.floor(m / 60)).padStart(2, '0');
-      const mm = String(m % 60).padStart(2, '0');
-      dayLog.push({ m: m, t: `${hh}:${mm}`, pv: pv, load: load, grid: grid });
-    }
-    viewCount = dayLog.length;
-    viewStart = 0;
-    saveDayHistory();
-  }
-
-  function saveDayHistory() {
-    try {
-      const todayKey = 'solar_day_v2_' + new Date().toISOString().slice(0, 10);
-      localStorage.setItem(todayKey, JSON.stringify(dayLog));
-    } catch (e) {}
-  }
-
-  function clampViewport() {
-    const total = dayLog.length;
-    if (total < 2) return;
-    const minVisible = Math.min(total, 8); // Can zoom in down to 8 points (~8 minutes / recent readings)
-    viewCount = Math.max(minVisible, Math.min(total, viewCount));
-    if (autoFollowLive) {
-      viewStart = Math.max(0, total - viewCount);
-    } else {
-      viewStart = Math.max(0, Math.min(total - viewCount, viewStart));
-      if (viewStart >= total - viewCount - 0.5) {
-        autoFollowLive = true;
-        viewStart = Math.max(0, total - viewCount);
-      }
-    }
-    const jumpBtn = document.getElementById('btnJumpLive');
-    if (jumpBtn) {
-      jumpBtn.style.display = (!autoFollowLive || viewCount < total * 0.95) ? 'block' : 'none';
-    }
-  }
-
-  // Zoom around a focal ratio (0.0 = left edge, 0.5 = center, 1.0 = right edge)
-  function zoomChart(factor, focalRatio = 0.5) {
-    const total = dayLog.length;
-    if (total < 4) return;
-    clampViewport();
-    const oldCount = viewCount;
-    const minVisible = Math.min(total, 8);
-    const newCount = Math.max(minVisible, Math.min(total, oldCount * factor));
-    const focalGlobal = viewStart + focalRatio * oldCount;
-    viewCount = newCount;
-    viewStart = focalGlobal - focalRatio * newCount;
-    if (viewStart + viewCount >= total - 0.5) {
-      autoFollowLive = true;
-    } else {
-      autoFollowLive = false;
-    }
-    clampViewport();
-    drawChart();
-  }
-
-  function hideTooltip() {
-    if (selectedGlobalIdx !== -1) {
-      selectedGlobalIdx = -1;
-      const hint = document.getElementById('chartHintTxt');
-      if (hint) hint.innerHTML = '👆 Vuốt ngang để kéo • Chạm điểm để xem';
-      drawChart();
-    }
-  }
-
-  function resetZoomAll() {
-    viewCount = dayLog.length;
-    viewStart = 0;
-    autoFollowLive = true;
-    selectedGlobalIdx = -1;
-    clampViewport();
-    drawChart();
-  }
-
-  function focusLiveDetail() {
-    const total = dayLog.length;
-    viewCount = Math.min(total, 25); // Zoom into latest 25 minutes
-    viewStart = Math.max(0, total - viewCount);
-    autoFollowLive = true;
-    selectedGlobalIdx = -1;
-    clampViewport();
-    drawChart();
-  }
-
-  function jumpToNow() {
-    autoFollowLive = true;
-    selectedGlobalIdx = -1;
-    clampViewport();
-    drawChart();
-  }
-
-  function getActiveDataset() {
-    const total = dayLog.length;
-    if (total === 0) {
-      return { pv: livePac, load: liveLoad, grid: liveGrid, t: liveTime, startIdx: 0, label: '' };
-    }
-    clampViewport();
-    const i0 = Math.max(0, Math.floor(viewStart));
-    const i1 = Math.min(total - 1, Math.ceil(viewStart + viewCount - 1));
-    const slice = dayLog.slice(i0, i1 + 1);
-    const zoomPct = Math.round((total / Math.max(1, slice.length)) * 100);
-    return {
-      pv: slice.map(x => x.pv),
-      load: slice.map(x => x.load),
-      grid: slice.map(x => x.grid),
-      t: slice.map(x => x.t),
-      startIdx: i0,
-      label: `${slice[0].t} → ${slice[slice.length - 1].t} (${zoomPct > 110 ? 'Zoom ' + (zoomPct/100).toFixed(1) + 'x' : 'Toàn cảnh'})`
-    };
-  }
-
-  function applyTheme(theme) {
-    const isDark = theme === 'dark';
-    document.body.classList.toggle('dark', isDark);
-    document.getElementById('themeBtn').innerText = isDark ? '☀️ Sáng' : '🌙 Tối';
-    try { localStorage.setItem('solar_theme', theme); } catch (e) {}
-    drawChart();
-  }
-
-  function toggleTheme() {
-    const isDark = document.body.classList.contains('dark');
-    applyTheme(isDark ? 'light' : 'dark');
-  }
-
-  function toggleSeries(which) {
-    if (which === 'pv') {
-      showPv = !showPv;
-      document.getElementById('togPv').classList.toggle('off', !showPv);
-    } else if (which === 'load') {
-      showLoad = !showLoad;
-      document.getElementById('togLoad').classList.toggle('off', !showLoad);
-    } else if (which === 'grid') {
-      showGrid = !showGrid;
-      document.getElementById('togGrid').classList.toggle('off', !showGrid);
-    }
-    drawChart();
-  }
-
-  function scrollToSec(id, idx) {
-    for (let i = 1; i <= 3; i++) {
-      document.getElementById('tab' + i).classList.toggle('active', i === idx);
-    }
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
-  function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
-  function quickSetIp(ip) { document.getElementById('inpIp').value = ip; saveConfig(); }
-
-  function logMsg(msg) {
-    const box = document.getElementById('logBox');
-    const now = new Date().toLocaleTimeString('vi-VN');
-    if (box) box.innerText = `[${now}] ${msg}`;
-  }
-
-  function initApp() {
-    initDayHistory();
-    try {
-      const savedTheme = localStorage.getItem('solar_theme') || 'light';
-      applyTheme(savedTheme);
-    } catch (e) {}
-
-    if (window.AndroidSolar) {
-      try {
-        const cfg = JSON.parse(window.AndroidSolar.getSavedConfig());
-        document.getElementById('inpIp').value = cfg.ip || '27.77.98.111';
-        document.getElementById('inpSn').value = cfg.sn || '3555314224';
-        document.getElementById('inpMode').value = cfg.mode || 'real';
-      } catch (e) {}
-    }
-
-    setupChartTouch();
-    setInterval(pollTick, 2000);
-    pollTick();
-  }
-
-  function saveConfig() {
-    const ip = document.getElementById('inpIp').value.trim();
-    const sn = document.getElementById('inpSn').value.trim();
-    const mode = document.getElementById('inpMode').value;
-    if (window.AndroidSolar) {
-      window.AndroidSolar.saveConfig(ip, sn, mode);
-    }
-    pollTick();
-  }
-
-  function scanInverter() {
-    logMsg("Đang quét tìm biến tần INVT...");
-    setTimeout(() => {
-      if (window.AndroidSolar) {
+      const r = await fetch('https://raw.githubusercontent.com/adlsviettel/solar-tu-nguyen/main/endpoints.json?t=' + Date.now(), { cache: 'no-store' });
+      const ep = await r.json();
+      const candidates = [ep.tunnel_url, ep.cloud_url, 'https://solar-tu-nguyen.onrender.com'].filter(Boolean);
+      for (const base of candidates) {
         try {
-          const res = JSON.parse(window.AndroidSolar.scanLan());
-          if (res.ok) {
-            document.getElementById('inpIp').value = res.ip;
-            document.getElementById('inpSn').value = res.sn;
-            document.getElementById('inpMode').value = 'real';
-            window.AndroidSolar.saveConfig(res.ip, res.sn, 'real');
-            logMsg("✅ Đã kết nối IP: " + res.ip);
-            pollTick();
-          } else {
-            logMsg("⚠️ " + res.msg);
+          const ctrl = new AbortController();
+          const tid = setTimeout(() => ctrl.abort(), 3500);
+          const test = await fetch(base + '/api/live', { mode: 'cors', signal: ctrl.signal });
+          clearTimeout(tid);
+          if (test.ok) {
+            apiBase = base;
+            return;
           }
         } catch (e) {}
       }
-    }, 50);
-  }
-
-  function pollTick() {
-    if (!window.AndroidSolar) return;
-    try {
-      const d = JSON.parse(window.AndroidSolar.pollNow());
-      updateUI(d);
     } catch (e) {}
   }
 
-  function updateUI(d) {
+  function loadLocalHistoryBackup() {
+    const key = 'solar_web_hist_' + new Date().toISOString().slice(0, 10);
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) dayPoints = parsed;
+      }
+    } catch (e) {}
+  }
+
+  function saveLocalHistoryBackup() {
+    const key = 'solar_web_hist_' + new Date().toISOString().slice(0, 10);
+    try { localStorage.setItem(key, JSON.stringify(dayPoints)); } catch (e) {}
+  }
+
+  async function fetchServerHistory() {
+    try {
+      const r = await fetch(apiBase + '/api/history', { mode: 'cors' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (Array.isArray(j.points) && j.points.length >= dayPoints.length) {
+        dayPoints = j.points;
+        saveLocalHistoryBackup();
+        syncSliderBounds();
+        drawChart();
+      }
+    } catch (e) {}
+  }
+
+  async function pollLive() {
+    try {
+      const r = await fetch(apiBase + '/api/live', { mode: 'cors' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      latestLive = d;
+      renderLiveTelemetry(d);
+    } catch (e) {
+      document.getElementById('statusText').innerText = 'ĐANG TÌM KẾT NỐI...';
+      document.getElementById('statusDot').style.background = '#f59e0b';
+    }
+  }
+
+  function renderLiveTelemetry(d) {
     const stTxt = document.getElementById('statusText');
-    const dot = document.getElementById('statusDot');
+    const stDot = document.getElementById('statusDot');
     if (d.status === 'online') {
-      stTxt.innerText = 'ONLINE 2s';
-      dot.style.background = '#10b981';
+      stTxt.innerText = 'TRỰC TIẾP 2s';
+      stDot.style.background = '#10b981';
     } else if (d.status === 'demo') {
-      stTxt.innerText = 'DEMO 2s';
-      dot.style.background = '#f59e0b';
+      stTxt.innerText = 'MÔ PHỎNG 2s';
+      stDot.style.background = '#f59e0b';
     } else {
-      stTxt.innerText = 'ĐANG KẾT NỐI';
-      dot.style.background = '#ef4444';
+      stTxt.innerText = 'CHỜ TÍN HIỆU';
+      stDot.style.background = '#ef4444';
     }
 
-    if (d.msg) logMsg(d.msg);
+    if (d.msg) document.getElementById('logBox').innerText = d.msg;
 
     const pac = Math.round(d.pac_w || 0);
+    const load = Math.round(d.load_w || 0);
     const ctw = Math.round(d.ct_w || 0);
-    const load = Math.max(0, Math.round(d.load_w || (pac + ctw)));
+    const gridIn = Math.max(0, ctw);
     const vpv = d.vpv_v || 0;
     const ipv = d.ipv_a || 0;
-    const pdc = Math.round(d.pdc_w || (vpv * ipv));
+    const vbus = d.vbus_v || 368.5;
     const vgrid = d.vgrid_v || 0;
-    const igrid = d.igrid_a || 0;
     const freq = d.freq_hz || 50.0;
     const temp = d.temp_c || 0;
-
     const etoday = d.etoday_kwh || 0;
     const etotal = d.etotal_kwh || 0;
-    const impToday = d.import_today_kwh !== undefined ? d.import_today_kwh : 1.1;
-    const impTotal = d.import_total_kwh !== undefined ? d.import_total_kwh : 78.9;
-    const expToday = d.export_today_kwh !== undefined ? d.export_today_kwh : 0.0;
-    const expTotal = d.export_total_kwh !== undefined ? d.export_total_kwh : 2.4;
+    const impToday = d.import_today_kwh || 0;
+    const impTotal = d.import_total_kwh || 0;
+    const expToday = d.export_today_kwh || 0;
     const loadToday = d.load_today_kwh !== undefined ? d.load_today_kwh : (etoday + impToday);
-    const loadTotal = d.load_total_kwh !== undefined ? d.load_total_kwh : 165.6;
+    const loadTotal = d.load_total_kwh || 0;
 
-    const selfPct = load > 0 ? Math.min(100, Math.round((pac / load) * 100)) : 100;
-    const gridPct = 100 - selfPct;
-
-    // Calculate Available Roof Solar Potential & Unused Excess Solar (W)
-    const nowDate = new Date();
-    const decHour = nowDate.getHours() + nowDate.getMinutes() / 60.0;
+    // Excess roof solar estimate
+    const now = new Date();
+    const decH = now.getHours() + now.getMinutes() / 60;
     let clearSkyW = 0;
-    if (decHour > 6.0 && decHour < 18.0) {
-      const s = Math.sin(Math.PI * (decHour - 6.0) / 12.0);
-      clearSkyW = Math.round(1540 * Math.pow(Math.max(0, s), 1.15));
+    if (decH > 6 && decH < 18) {
+      clearSkyW = Math.round(1540 * Math.pow(Math.max(0, Math.sin(Math.PI * (decH - 6) / 12)), 1.15));
     }
-    let potentialW = pac;
-    let excessW = 0;
-    if (ctw <= 35 && vpv >= 121.0 && clearSkyW > pac) {
-      const vFactor = Math.min(1.05, Math.max(0.35, (vpv - 115.5) / 14.5));
-      potentialW = Math.max(pac, Math.round(clearSkyW * vFactor));
+    let potentialW = pac, excessW = 0;
+    if (ctw <= 35 && vpv >= 121 && clearSkyW > pac) {
+      const vf = Math.min(1.05, Math.max(0.35, (vpv - 115.5) / 14.5));
+      potentialW = Math.max(pac, Math.round(clearSkyW * vf));
       excessW = Math.max(0, potentialW - pac);
     }
 
-    // 1. Update 3-Column Comparison Card
+    const selfPct = load > 0 ? Math.min(100, Math.round((Math.min(load, pac) / load) * 100)) : (pac > 0 ? 100 : 0);
+    const gridPct = 100 - selfPct;
+
     document.getElementById('valPac').innerText = pac.toLocaleString('vi-VN');
-    const tagEx = document.getElementById('tagExcessW');
+    document.getElementById('valLoad').innerText = load.toLocaleString('vi-VN');
+    document.getElementById('valCtAbs').innerText = Math.abs(ctw).toLocaleString('vi-VN');
+
+    const tagEx = document.getElementById('tagExcess');
     if (excessW > 25) {
-      tagEx.innerText = '🔥 Còn dư: +' + excessW + ' W';
-      tagEx.style.color = '#059669';
-      tagEx.style.background = 'rgba(16,185,129,0.18)';
+      tagEx.innerText = `Còn dư ~${excessW}W`;
+      tagEx.style.color = 'var(--load)';
     } else {
-      tagEx.innerText = 'Đã bung hết 100% nắng';
+      tagEx.innerText = vpv > 80 ? 'Bung 100% nắng' : 'Nghỉ ban đêm';
       tagEx.style.color = 'var(--solar)';
-      tagEx.style.background = 'rgba(245,158,11,0.15)';
     }
-    document.getElementById('lblPotential').innerText = 'Đỉnh nắng lúc này: ~' + potentialW + ' W';
+
     document.getElementById('valEtoday').innerText = etoday.toFixed(2);
     document.getElementById('valEtotal').innerText = etotal.toFixed(1);
-
-    document.getElementById('valLoad').innerText = load.toLocaleString('vi-VN');
-    document.getElementById('tagSelfPct').innerText = 'Mặt trời gánh ' + selfPct + '%';
+    document.getElementById('tagSelfPct').innerText = `Mặt trời gánh ${selfPct}%`;
     document.getElementById('valLoadToday').innerText = loadToday.toFixed(2);
     document.getElementById('valLoadTotal').innerText = loadTotal.toFixed(1);
 
-    document.getElementById('valCtAbs').innerText = Math.abs(ctw).toLocaleString('vi-VN');
     if (ctw >= 0) {
-      document.getElementById('lblGridTitle').innerText = '🔌 ĐANG LẤY EVN';
-      document.getElementById('tagGridState').innerText = 'Mua phụ ' + gridPct + '% tải';
-      document.getElementById('barGridLbl').innerHTML = `🔌 Lưới EVN cấp: <span id="barGridW">${ctw}W (${gridPct}%)</span>`;
+      document.getElementById('lblGridTitle').innerText = '🔌 LẤY LƯỚI EVN';
+      document.getElementById('tagGridState').innerText = `Mua phụ ${gridPct}%`;
+      document.getElementById('barGridWrap').innerHTML = `🔌 EVN phụ: <b id="barGridTxt">${ctw}W (${gridPct}%)</b>`;
     } else {
-      document.getElementById('lblGridTitle').innerText = '📤 ĐANG ĐẨY LƯỚI';
-      document.getElementById('tagGridState').innerText = 'Dư đẩy ra ' + Math.abs(ctw) + 'W';
-      document.getElementById('barGridLbl').innerHTML = `📤 Đẩy ra lưới: <span id="barGridW">${Math.abs(ctw)}W (0%)</span>`;
+      document.getElementById('lblGridTitle').innerText = '📤 ĐẨY RA LƯỚI';
+      document.getElementById('tagGridState').innerText = `Đẩy dư ${Math.abs(ctw)}W`;
+      document.getElementById('barGridWrap').innerHTML = `📤 Đẩy lưới: <b id="barGridTxt">${Math.abs(ctw)}W</b>`;
     }
     document.getElementById('valImpToday').innerText = impToday.toFixed(2);
     document.getElementById('valImpTotal').innerText = impTotal.toFixed(1);
 
-    // Visual Comparison Bar
-    document.getElementById('barSolarW').innerText = `${pac}W (${selfPct}%)`;
+    document.getElementById('barSolarTxt').innerText = `${Math.min(load, pac)}W (${selfPct}%)`;
     document.getElementById('barSolarFill').style.width = selfPct + '%';
-    document.getElementById('barSolarFill').innerText = selfPct >= 12 ? `☀️ ${selfPct}%` : '';
+    document.getElementById('barSolarFill').innerText = selfPct >= 14 ? `${selfPct}%` : '';
     document.getElementById('barGridFill').style.width = gridPct + '%';
-    document.getElementById('barGridFill').innerText = gridPct >= 12 ? `🔌 ${gridPct}%` : '';
+    document.getElementById('barGridFill').innerText = gridPct >= 14 ? `${gridPct}%` : '';
 
-    // 2. Update Chart Toggles
-    document.getElementById('legPv').innerText = pac + ' W';
-    document.getElementById('legLoad').innerText = load + ' W';
-    document.getElementById('legGrid').innerText = (ctw >= 0 ? ctw : 0) + ' W';
-
-    // 3. Update Flow & Tech Section (Use actual measured inverter power pac so it matches 100% with real output)
-    document.getElementById('fVpv').innerText = vpv.toFixed(1);
-    document.getElementById('fIpv').innerText = ipv.toFixed(2);
-    document.getElementById('fPdc').innerText = pac;
-    document.getElementById('fVgrid').innerText = vgrid.toFixed(1);
-    document.getElementById('fIgrid').innerText = igrid.toFixed(2);
-    document.getElementById('fFreq').innerText = freq.toFixed(1);
-    document.getElementById('valTemp').innerText = temp.toFixed(1) + '°C';
-    document.getElementById('valTempHdr').innerText = 'Nhiệt độ máy: ' + temp.toFixed(1) + '°C';
-    document.getElementById('valExpToday').innerText = expToday.toFixed(2);
-    document.getElementById('valExpTotal').innerText = expTotal.toFixed(1);
-
-    document.getElementById('wirePv').className.baseVal = pac > 10 ? 'wire-anim' : 'wire-paused';
-    document.getElementById('wireLoad').className.baseVal = load > 10 ? 'wire-anim' : 'wire-paused';
-    if (Math.abs(ctw) <= 10) {
-      document.getElementById('wireGrid').className.baseVal = 'wire-paused';
-    } else if (ctw > 10) {
-      document.getElementById('wireGrid').className.baseVal = 'wire-anim';
-    } else {
-      document.getElementById('wireGrid').className.baseVal = 'wire-anim wire-reverse';
-    }
-
-    const money = Math.round(etoday * 3732.48);
-    document.getElementById('moneyBadge').innerText = '💰 Tiết kiệm: ' + money.toLocaleString('vi-VN') + 'đ';
-
-    const exTxt = document.getElementById('excessText');
     if (excessW > 25) {
-      exTxt.innerText = `🟢 Đang hòa lưới ${pac}W • Còn dư ~${excessW}W trên mái (Tổng nắng ~${potentialW}W)`;
-    } else if (vpv >= 85.0) {
-      exTxt.innerText = `☀️ Đang bung hết 100% nắng (${pac}W) • Lưới EVN phụ thêm ${Math.max(0, ctw)}W`;
+      document.getElementById('excessText').innerText = `🟢 Đang phát ${pac}W • Trên mái còn dư ~${excessW}W chưa dùng hết (Đỉnh nắng ~${potentialW}W)`;
+    } else if (vpv >= 85) {
+      document.getElementById('excessText').innerText = `☀️ Đang phát tối đa theo nắng hiện tại (${pac}W) • Điện lưới phụ thêm ${gridIn}W`;
     } else {
-      exTxt.innerText = `🌙 Chế độ ban đêm / Chờ nắng`;
+      document.getElementById('excessText').innerText = `🌙 Giàn pin đang nghỉ chờ nắng`;
     }
 
-    const nowStr = new Date().toLocaleTimeString('vi-VN');
-    document.getElementById('lastTime').innerText = nowStr;
+    const money = Math.round(etoday * 3732.48).toLocaleString('vi-VN');
+    document.getElementById('moneyChip').innerText = `💰 Hôm nay: ${money}đ`;
+    document.getElementById('moneySubMobile').innerText = `💰 Tiết kiệm: ${money}đ`;
+    document.getElementById('lastTime').innerText = d.timestamp || now.toLocaleTimeString('vi-VN');
 
+    // Flow SVG + Specs
+    document.getElementById('svgPvW').textContent = `${pac} W`;
+    document.getElementById('svgPvSub').textContent = `${vpv.toFixed(1)}V • ${ipv.toFixed(2)}A`;
+    document.getElementById('svgGridW').textContent = `${ctw >= 0 ? '+' : ''}${ctw} W`;
+    document.getElementById('svgGridSub').textContent = `${vgrid.toFixed(1)}V • ${freq.toFixed(1)}Hz`;
+    document.getElementById('svgTemp').textContent = `${temp.toFixed(1)}°C`;
+    document.getElementById('hdrTemp').innerText = `Tâm IGBT: ${temp.toFixed(1)}°C`;
+    document.getElementById('svgVbus').textContent = `${vbus.toFixed(1)} V`;
+    document.getElementById('svgLoadW').textContent = `${load} W`;
+    document.getElementById('svgExpSub').textContent = `Đẩy lưới: ${expToday.toFixed(2)} kWh`;
+
+    document.getElementById('spVpv').innerText = `${vpv.toFixed(1)} V`;
+    document.getElementById('spIpv').innerText = `${ipv.toFixed(2)} A`;
+    document.getElementById('spVgrid').innerText = `${vgrid.toFixed(1)} V`;
+    document.getElementById('spFreq').innerText = `${freq.toFixed(2)} Hz`;
+
+    document.getElementById('wirePv').setAttribute('class', pac > 10 ? 'flow-wire-act' : 'flow-wire-act flow-wire-off');
+    document.getElementById('wireLoad').setAttribute('class', load > 10 ? 'flow-wire-act' : 'flow-wire-act flow-wire-off');
+    if (Math.abs(ctw) <= 10) {
+      document.getElementById('wireGrid').setAttribute('class', 'flow-wire-act flow-wire-off');
+    } else if (ctw > 10) {
+      document.getElementById('wireGrid').setAttribute('class', 'flow-wire-act');
+    } else {
+      document.getElementById('wireGrid').setAttribute('class', 'flow-wire-act flow-wire-rev');
+    }
+
+    // Record live point into dayPoints
     if (d.status === 'online' || d.status === 'demo') {
-      const gVal = Math.max(0, ctw);
-      livePac.push(pac);
-      liveLoad.push(load);
-      liveGrid.push(gVal);
-      liveTime.push(nowStr);
-      if (livePac.length > MAX_LIVE) {
-        livePac.shift();
-        liveLoad.shift();
-        liveGrid.shift();
-        liveTime.shift();
-      }
-
-      // Append or update current minute in full-day log
-      const curM = nowDate.getHours() * 60 + nowDate.getMinutes();
-      const hhmm = String(nowDate.getHours()).padStart(2, '0') + ':' + String(nowDate.getMinutes()).padStart(2, '0');
-      if (dayLog.length === 0 || curM - dayLog[dayLog.length - 1].m >= 1) {
-        const wasFullView = (viewCount >= dayLog.length - 1);
-        dayLog.push({ m: curM, t: hhmm, pv: pac, load: load, grid: gVal });
-        if (wasFullView && autoFollowLive) viewCount = dayLog.length;
-        saveDayHistory();
+      const curM = now.getHours() * 60 + now.getMinutes();
+      const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      const pt = { m: curM, t: hhmm, pv: pac, load: load, grid: gridIn };
+      if (dayPoints.length === 0 || curM > dayPoints[dayPoints.length - 1].m) {
+        dayPoints.push(pt);
+        saveLocalHistoryBackup();
       } else {
-        dayLog[dayLog.length - 1] = { m: curM, t: hhmm, pv: pac, load: load, grid: gVal };
+        dayPoints[dayPoints.length - 1] = pt;
       }
+      syncSliderBounds();
     }
 
+    updateInspectorDisplay();
     drawChart();
   }
 
-  // ============================================================================
-  // DIRECT INTERACTIVE CANVAS GESTURES:
-  // 1) 1-Finger Drag / Mouse Drag = Smooth Horizontal Pan across earlier hours
-  // 2) 2-Finger Pinch / Mouse Wheel = Smooth Zoom In / Zoom Out around focal point
-  // 3) Single Tap / Click on any point = Pin & Popup Floating Callout Box on that point
-  // ============================================================================
-  let lastTooltipBox = null; // Stores {x, y, w, h} in canvas coords when tooltip is visible
-
-  function setupChartTouch() {
-    const canvas = document.getElementById('liveChart');
-    if (!canvas) return;
-
-    let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let startViewStart = 0;
-    let movedDist = 0;
-
-    let isPinching = false;
-    let pinchStartDist = 0;
-    let pinchStartCount = 0;
-    let pinchFocalGlobal = 0;
-    let pinchFocalRatio = 0.5;
-
-    // Click / Tap anywhere OUTSIDE the canvas -> Auto-hide tooltip immediately!
-    document.addEventListener('mousedown', e => {
-      if (selectedGlobalIdx !== -1 && e.target !== canvas) {
-        hideTooltip();
-      }
+  // ==================== INTUITIVE CHART ENGINE (RETINA + MAGNETIC SCRUBBER) ====================
+  function setRangeMode(mode) {
+    rangeMode = mode;
+    ['day', '3h', '1h', '15m'].forEach(k => {
+      const id = k === 'day' ? 'tabDay' : 'tab' + k;
+      document.getElementById(id).classList.toggle('active', k === mode);
     });
-    document.addEventListener('touchstart', e => {
-      if (selectedGlobalIdx !== -1 && e.target !== canvas) {
-        hideTooltip();
-      }
-    }, { passive: true });
+    sliderEndIdx = -1; // Snap to latest when switching tab
+    clearInspect(false);
+    syncSliderBounds();
+    drawChart();
+  }
 
-    function getPlotMetrics() {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / Math.max(1, rect.width);
-      const scaleY = canvas.height / Math.max(1, rect.height);
-      const padL = 48 / scaleX;
-      const padR = 66 / scaleX;
-      const plotW = Math.max(40, rect.width - padL - padR);
-      return { rect, padL, plotW, scaleX, scaleY };
+  function getWindowPoints() {
+    if (dayPoints.length === 0) return { pts: [], isFixedDay: true, minM: 360, maxM: 1110 };
+
+    if (rangeMode === 'day') {
+      document.getElementById('scrubberWrap').classList.remove('show');
+      document.getElementById('chartWindowLabel').innerText = 'Khung: Cả ngày (06:00 – 18:30)';
+      return {
+        pts: dayPoints,
+        isFixedDay: true,
+        minM: 360,  // 06:00
+        maxM: Math.max(1110, dayPoints[dayPoints.length - 1].m + 15) // 18:30
+      };
     }
 
-    function selectPointAtClientXY(clientX, clientY) {
-      const { rect, padL, plotW, scaleX, scaleY } = getPlotMetrics();
-      const canvasX = (clientX - rect.left) * scaleX;
-      const canvasY = (clientY - rect.top) * scaleY;
+    const winLen = rangeMode === '3h' ? 180 : (rangeMode === '1h' ? 60 : 16);
+    const total = dayPoints.length;
+    document.getElementById('scrubberWrap').classList.toggle('show', total > winLen);
 
-      // 1. If user tapped directly on the open tooltip box (or its ✕ close button), hide it!
-      if (selectedGlobalIdx !== -1 && lastTooltipBox) {
-        if (
-          canvasX >= lastTooltipBox.x - 6 &&
-          canvasX <= lastTooltipBox.x + lastTooltipBox.w + 6 &&
-          canvasY >= lastTooltipBox.y - 6 &&
-          canvasY <= lastTooltipBox.y + lastTooltipBox.h + 6
-        ) {
-          hideTooltip();
+    const endIdx = (sliderEndIdx < 0 || sliderEndIdx >= total - 1) ? (total - 1) : sliderEndIdx;
+    const startIdx = Math.max(0, endIdx - winLen + 1);
+    const slice = dayPoints.slice(startIdx, endIdx + 1);
+
+    if (slice.length > 0) {
+      const lbl = `${slice[0].t} → ${slice[slice.length - 1].t}`;
+      document.getElementById('chartWindowLabel').innerText = `Khung: ${lbl}`;
+      document.getElementById('scrubberTxt').innerText =
+        endIdx >= total - 1 ? `🟢 Đang xem mới nhất (${lbl})` : `⏪ Đang xem lại khung ${lbl}`;
+      document.getElementById('btnBackLive').style.display = endIdx < total - 1 ? 'inline-block' : 'none';
+    }
+
+    return {
+      pts: slice,
+      isFixedDay: false,
+      minM: slice.length ? slice[0].m : 360,
+      maxM: slice.length ? Math.max(slice[0].m + 1, slice[slice.length - 1].m) : 420
+    };
+  }
+
+  function syncSliderBounds() {
+    const slider = document.getElementById('timeSlider');
+    if (!slider || dayPoints.length < 2) return;
+    const winLen = rangeMode === '3h' ? 180 : (rangeMode === '1h' ? 60 : 16);
+    const minEnd = Math.min(dayPoints.length - 1, winLen - 1);
+    slider.min = minEnd;
+    slider.max = dayPoints.length - 1;
+    if (sliderEndIdx < 0 || sliderEndIdx >= dayPoints.length - 1) {
+      slider.value = dayPoints.length - 1;
+    }
+  }
+
+  function onSliderScrub(val) {
+    const idx = parseInt(val, 10);
+    if (idx >= dayPoints.length - 1) {
+      sliderEndIdx = -1;
+    } else {
+      sliderEndIdx = idx;
+    }
+    clearInspect(false);
+    drawChart();
+  }
+
+  function snapSliderToLive() {
+    sliderEndIdx = -1;
+    syncSliderBounds();
+    clearInspect(false);
+    drawChart();
+  }
+
+  function toggleLine(which) {
+    if (which === 'pv') {
+      showPv = !showPv;
+      document.getElementById('pillPv').classList.toggle('off', !showPv);
+    } else if (which === 'load') {
+      showLoad = !showLoad;
+      document.getElementById('pillLoad').classList.toggle('off', !showLoad);
+    } else if (which === 'grid') {
+      showGrid = !showGrid;
+      document.getElementById('pillGrid').classList.toggle('off', !showGrid);
+    }
+    drawChart();
+  }
+
+  function updateInspectorDisplay() {
+    const bar = document.getElementById('inspectorBar');
+    if (inspectPoint) {
+      bar.classList.add('scrubbing');
+      document.getElementById('inspTitle').innerHTML =
+        `📍 Đang xem lúc <b>${inspectPoint.t}</b> ${inspectPinned ? '(Đã ghim)' : ''}`;
+      document.getElementById('inspPv').innerText = `${inspectPoint.pv} W`;
+      document.getElementById('inspLoad').innerText = `${inspectPoint.load} W`;
+      document.getElementById('inspGrid').innerText = `${inspectPoint.grid} W`;
+    } else {
+      bar.classList.remove('scrubbing');
+      const pac = Math.round(latestLive.pac_w || 0);
+      const load = Math.round(latestLive.load_w || 0);
+      const grid = Math.max(0, Math.round(latestLive.ct_w || 0));
+      const nowT = latestLive.timestamp ? latestLive.timestamp.slice(0, 5) : 'Hiện tại';
+      document.getElementById('inspTitle').innerHTML = `🟢 Trực tiếp lúc <b>${nowT}</b>`;
+      document.getElementById('inspPv').innerText = `${pac} W`;
+      document.getElementById('inspLoad').innerText = `${load} W`;
+      document.getElementById('inspGrid').innerText = `${grid} W`;
+    }
+  }
+
+  function clearInspect(redraw = true) {
+    inspectPoint = null;
+    inspectPinned = false;
+    updateInspectorDisplay();
+    if (redraw) drawChart();
+  }
+
+  // Resize Retina HiDPI Canvas cleanly
+  let cssW = 600, cssH = 300;
+  function resizeCanvas() {
+    const stage = document.getElementById('canvasStage');
+    const canvas = document.getElementById('solarCanvas');
+    if (!stage || !canvas) return;
+    const rect = stage.getBoundingClientRect();
+    if (rect.width < 20 || rect.height < 20) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cssW = rect.width;
+    cssH = rect.height;
+    canvas.width = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawChart();
+  }
+
+  function getPointX(pt, idx, n, win, padL, plotW) {
+    if (win.isFixedDay) {
+      const ratio = (pt.m - win.minM) / Math.max(1, win.maxM - win.minM);
+      return padL + Math.max(0, Math.min(1, ratio)) * plotW;
+    }
+    if (n <= 1) return padL + plotW / 2;
+    return padL + (idx / (n - 1)) * plotW;
+  }
+
+  function findNearestPointAtClientX(clientX) {
+    const canvas = document.getElementById('solarCanvas');
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const padL = 46, padR = 16;
+    const plotW = Math.max(40, cssW - padL - padR);
+    const win = getWindowPoints();
+    const pts = win.pts;
+    if (!pts || pts.length === 0) return null;
+
+    let best = pts[0];
+    let bestDist = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const px = getPointX(pts[i], i, pts.length, win, padL, plotW);
+      const d = Math.abs(x - px);
+      if (d < bestDist) {
+        bestDist = d;
+        best = pts[i];
+      }
+    }
+    return best;
+  }
+
+  function setupChartInteractions() {
+    const canvas = document.getElementById('solarCanvas');
+    if (!canvas) return;
+
+    // 1. PC Mouse: Effortless Hover Crosshair + Click to Pin/Unpin
+    canvas.addEventListener('mousemove', e => {
+      if (inspectPinned) return;
+      const pt = findNearestPointAtClientX(e.clientX);
+      if (pt) {
+        inspectPoint = pt;
+        updateInspectorDisplay();
+        drawChart();
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      if (!inspectPinned) clearInspect();
+    });
+
+    canvas.addEventListener('click', e => {
+      const pt = findNearestPointAtClientX(e.clientX);
+      if (!pt) return;
+      if (inspectPinned && inspectPoint && inspectPoint.m === pt.m) {
+        clearInspect();
+      } else {
+        inspectPoint = pt;
+        inspectPinned = true;
+        updateInspectorDisplay();
+        drawChart();
+      }
+    });
+
+    // 2. Mobile / iOS Touch: Smooth Horizontal Scrubbing WITHOUT blocking vertical page scroll (pan-y)!
+    let touchStartX = 0, touchStartY = 0;
+    let scrubMode = null; // null | 'scrub' | 'scroll'
+
+    canvas.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      scrubMode = null;
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', e => {
+      if (e.touches.length !== 1) return;
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+
+      if (!scrubMode) {
+        if (dy > 9 && dy > dx) {
+          scrubMode = 'scroll'; // Let browser scroll the page smoothly!
           return;
+        }
+        if (dx > 6) {
+          scrubMode = 'scrub';
         }
       }
 
-      const view = getActiveDataset();
-      const n = view.t.length;
-      if (n < 2) return;
-
-      // 2. If user clicked in the left/right margins outside the plot area, hide tooltip!
-      if (canvasX < 44 || canvasX > canvas.width - 60) {
-        hideTooltip();
-        return;
-      }
-
-      const relX = Math.max(0, Math.min(1, (clientX - rect.left - padL) / plotW));
-      const localIdx = Math.max(0, Math.min(n - 1, Math.round(relX * (n - 1))));
-      const tappedGlobal = view.startIdx + localIdx;
-
-      // 3. Check vertical distance from the tapped Y to the nearest curve at this X:
-      // If tooltip is already open and user taps the same point OR taps empty sky far from the curves (> 52px), hide it!
-      let peak = 600;
-      for (let i = 0; i < n; i++) {
-        if (showPv && view.pv[i] > peak) peak = view.pv[i];
-        if (showLoad && view.load[i] > peak) peak = view.load[i];
-        if (showGrid && view.grid[i] > peak) peak = view.grid[i];
-      }
-      const maxVal = Math.ceil((peak * 1.2) / 200) * 200;
-      const padT = 20;
-      const plotH = canvas.height - padT - 42;
-      const candidateYs = [];
-      if (showPv) candidateYs.push(padT + plotH * (1 - Math.min(maxVal, view.pv[localIdx]) / maxVal));
-      if (showLoad) candidateYs.push(padT + plotH * (1 - Math.min(maxVal, view.load[localIdx]) / maxVal));
-      if (showGrid) candidateYs.push(padT + plotH * (1 - Math.min(maxVal, view.grid[localIdx]) / maxVal));
-      const minDistY = candidateYs.length ? Math.min(...candidateYs.map(y => Math.abs(canvasY - y))) : 0;
-
-      if (selectedGlobalIdx !== -1 && (tappedGlobal === selectedGlobalIdx || minDistY > 52)) {
-        hideTooltip();
-        return;
-      }
-
-      selectedGlobalIdx = tappedGlobal;
-      const hint = document.getElementById('chartHintTxt');
-      if (hint) {
-        hint.innerHTML = `📍 Đang chọn <b>${view.t[localIdx]}</b> • Bấm ra ngoài để đóng`;
-      }
-      drawChart();
-    }
-
-    // --- TOUCH EVENTS (Mobile Android / iOS) ---
-    canvas.addEventListener('touchstart', e => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        isPinching = true;
-        isDragging = false;
-        selectedGlobalIdx = -1; // Auto-hide tooltip while pinching
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        pinchStartDist = Math.max(10, Math.hypot(dx, dy));
-        clampViewport();
-        pinchStartCount = viewCount;
-        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const { rect, padL, plotW } = getPlotMetrics();
-        pinchFocalRatio = Math.max(0, Math.min(1, (midX - rect.left - padL) / plotW));
-        pinchFocalGlobal = viewStart + pinchFocalRatio * viewCount;
-      } else if (e.touches.length === 1) {
-        isDragging = true;
-        isPinching = false;
-        dragStartX = e.touches[0].clientX;
-        dragStartY = e.touches[0].clientY;
-        clampViewport();
-        startViewStart = viewStart;
-        movedDist = 0;
-      }
-    }, { passive: false });
-
-    canvas.addEventListener('touchmove', e => {
-      if (isPinching && e.touches.length === 2) {
-        e.preventDefault();
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const curDist = Math.max(10, Math.hypot(dx, dy));
-        const scale = pinchStartDist / curDist;
-        const total = dayLog.length;
-        const minVis = Math.min(total, 8);
-        viewCount = Math.max(minVis, Math.min(total, pinchStartCount * scale));
-        viewStart = pinchFocalGlobal - pinchFocalRatio * viewCount;
-        autoFollowLive = (viewStart + viewCount >= total - 0.5);
-        clampViewport();
-        drawChart();
-      } else if (isDragging && e.touches.length === 1) {
-        const curX = e.touches[0].clientX;
-        const curY = e.touches[0].clientY;
-        const dx = curX - dragStartX;
-        const dy = curY - dragStartY;
-        movedDist = Math.hypot(dx, dy);
-
-        // If horizontal swipe dominates, pan the chart directly!
-        if (Math.abs(dx) > 6) {
-          e.preventDefault();
-          selectedGlobalIdx = -1; // Auto-hide tooltip when panning
-          const { plotW } = getPlotMetrics();
-          const total = dayLog.length;
-          if (viewCount >= total - 1 && total > 24) {
-            viewCount = Math.min(total, Math.max(20, Math.round(total * 0.45)));
-            startViewStart = Math.max(0, total - viewCount);
-          }
-          const deltaPoints = -(dx / plotW) * viewCount;
-          viewStart = Math.max(0, Math.min(total - viewCount, startViewStart + deltaPoints));
-          autoFollowLive = (viewStart >= total - viewCount - 0.5);
-          clampViewport();
+      if (scrubMode === 'scrub') {
+        if (e.cancelable) e.preventDefault();
+        const pt = findNearestPointAtClientX(e.touches[0].clientX);
+        if (pt) {
+          inspectPoint = pt;
+          inspectPinned = true;
+          updateInspectorDisplay();
           drawChart();
         }
       }
     }, { passive: false });
 
     canvas.addEventListener('touchend', e => {
-      if (isDragging && !isPinching && movedDist < 9) {
-        selectPointAtClientXY(dragStartX, dragStartY);
-      }
-      if (e.touches.length === 0) {
-        isDragging = false;
-        isPinching = false;
-      }
-    });
-
-    // --- MOUSE EVENTS (PC Web Dashboard) ---
-    canvas.addEventListener('mousedown', e => {
-      isDragging = true;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      clampViewport();
-      startViewStart = viewStart;
-      movedDist = 0;
-    });
-
-    window.addEventListener('mousemove', e => {
-      if (!isDragging) return;
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
-      movedDist = Math.hypot(dx, dy);
-      if (Math.abs(dx) > 5) {
-        selectedGlobalIdx = -1; // Auto-hide tooltip when dragging
-        const { plotW } = getPlotMetrics();
-        const total = dayLog.length;
-        if (viewCount >= total - 1 && total > 24) {
-          viewCount = Math.min(total, Math.max(20, Math.round(total * 0.45)));
-          startViewStart = Math.max(0, total - viewCount);
+      if (scrubMode === null) {
+        // Simple single tap on mobile
+        const pt = findNearestPointAtClientX(touchStartX);
+        if (pt) {
+          if (inspectPoint && inspectPoint.m === pt.m) {
+            clearInspect();
+          } else {
+            inspectPoint = pt;
+            inspectPinned = true;
+            updateInspectorDisplay();
+            drawChart();
+          }
         }
-        const deltaPoints = -(dx / plotW) * viewCount;
-        viewStart = Math.max(0, Math.min(total - viewCount, startViewStart + deltaPoints));
-        autoFollowLive = (viewStart >= total - viewCount - 0.5);
-        clampViewport();
-        drawChart();
       }
+      scrubMode = null;
     });
 
-    window.addEventListener('mouseup', e => {
-      if (!isDragging) return;
-      if (movedDist < 7) {
-        selectPointAtClientXY(e.clientX, e.clientY);
+    // Click / Tap anywhere outside the chart & inspector -> Auto close crosshair!
+    document.addEventListener('pointerdown', e => {
+      if (!inspectPoint) return;
+      const inCanvas = canvas.contains(e.target);
+      const inBar = document.getElementById('inspectorBar').contains(e.target);
+      if (!inCanvas && !inBar) {
+        clearInspect();
       }
-      isDragging = false;
     });
-
-    // Mouse Wheel Zoom on PC
-    canvas.addEventListener('wheel', e => {
-      e.preventDefault();
-      selectedGlobalIdx = -1;
-      const { rect, padL, plotW } = getPlotMetrics();
-      const focalRatio = Math.max(0, Math.min(1, (e.clientX - rect.left - padL) / plotW));
-      const factor = e.deltaY < 0 ? 0.78 : 1.28;
-      zoomChart(factor, focalRatio);
-    }, { passive: false });
   }
 
-  // Smooth Cubic Bezier Spline Path Generator
-  function traceSmoothSpline(ctx, pts) {
-    if (pts.length < 2) return;
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[i];
-      const p1 = pts[i + 1];
-      const cpx1 = p0.x + (p1.x - p0.x) * 0.45;
-      const cpy1 = p0.y;
-      const cpx2 = p0.x + (p1.x - p0.x) * 0.55;
-      const cpy2 = p1.y;
-      ctx.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, p1.x, p1.y);
+  function traceMonotoneSpline(ctx, coords) {
+    if (coords.length < 2) return;
+    ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 0; i < coords.length - 1; i++) {
+      const p0 = coords[i];
+      const p1 = coords[i + 1];
+      const mx = (p0.x + p1.x) / 2;
+      ctx.bezierCurveTo(mx, p0.y, mx, p1.y, p1.x, p1.y);
     }
   }
 
-  function drawRoundedRect(ctx, x, y, w, h, r) {
+  function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.lineTo(x + w - r, y);
@@ -1379,230 +1199,260 @@ if (!window.AndroidSolar) {
   }
 
   function drawChart() {
-    const canvas = document.getElementById('liveChart');
+    const canvas = document.getElementById('solarCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
-
-    const view = getActiveDataset();
-    const n = view.t.length;
-    if (n < 2) return;
-
-    document.getElementById('chartScaleInfo').innerText = view.label;
+    ctx.clearRect(0, 0, cssW, cssH);
 
     const isDark = document.body.classList.contains('dark');
-    const gridColor = isDark ? 'rgba(148,163,184,0.13)' : '#e2e8f0';
-    const textColor = isDark ? '#94a3b8' : '#64748b';
+    const gridStroke = isDark ? 'rgba(148, 163, 184, 0.12)' : '#e2e8f0';
+    const labelColor = isDark ? '#94a3b8' : '#64748b';
 
-    let peak = 600;
-    for (let i = 0; i < n; i++) {
-      if (showPv && view.pv[i] > peak) peak = view.pv[i];
-      if (showLoad && view.load[i] > peak) peak = view.load[i];
-      if (showGrid && view.grid[i] > peak) peak = view.grid[i];
+    const padL = 46, padR = 16, padT = 18, padB = 30;
+    const plotW = Math.max(40, cssW - padL - padR);
+    const plotH = Math.max(40, cssH - padT - padB);
+
+    const win = getWindowPoints();
+    const pts = win.pts;
+
+    // Calculate clean Y-axis max scale (minimum 800W, rounded to 250W or 500W)
+    let peak = 750;
+    for (let i = 0; i < pts.length; i++) {
+      if (showPv && pts[i].pv > peak) peak = pts[i].pv;
+      if (showLoad && pts[i].load > peak) peak = pts[i].load;
+      if (showGrid && pts[i].grid > peak) peak = pts[i].grid;
     }
-    const maxVal = Math.ceil((peak * 1.2) / 200) * 200;
+    const step = peak > 1400 ? 500 : 250;
+    const maxY = Math.ceil((peak * 1.15) / step) * step;
 
-    const padL = 48;
-    const padR = 66;
-    const padT = 20;
-    const padB = 42; // Extra room at bottom for mini overview scrollbar
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
-
-    // 1. Horizontal gridlines & Y labels
-    ctx.strokeStyle = gridColor;
+    // 1. Horizontal Y-Axis Gridlines
     ctx.lineWidth = 1;
-    ctx.font = 'bold 11.5px sans-serif';
-    ctx.fillStyle = textColor;
+    ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = labelColor;
     for (let i = 0; i <= 4; i++) {
-      const y = padT + plotH * (i / 4);
+      const y = padT + (plotH * i) / 4;
+      ctx.strokeStyle = gridStroke;
       ctx.beginPath();
       ctx.moveTo(padL, y);
-      ctx.lineTo(W - padR, y);
+      ctx.lineTo(padL + plotW, y);
       ctx.stroke();
-      const val = Math.round(maxVal * (1 - i / 4));
-      ctx.fillText(val + 'W', 4, y + 4);
+
+      const wVal = Math.round(maxY * (1 - i / 4));
+      ctx.textAlign = 'right';
+      ctx.fillText(wVal >= 1000 ? (wVal / 1000).toFixed(wVal % 1000 === 0 ? 0 : 1) + 'kW' : wVal + 'W', padL - 6, y + 4);
     }
 
-    // 2. X-axis time ticks (5 evenly spaced timestamps)
-    const tickCount = Math.min(6, n);
-    for (let t = 0; t < tickCount; t++) {
-      const idx = Math.round((t / (tickCount - 1)) * (n - 1));
-      const tx = padL + (idx / (n - 1)) * plotW;
-      ctx.fillStyle = textColor;
-      ctx.fillText(view.t[idx] || '', Math.max(padL, tx - 16), padT + plotH + 17);
-    }
-
-    // 3. Mini Scrollbar / Viewport Indicator at the very bottom of Canvas
-    const total = Math.max(1, dayLog.length);
-    const barY = H - 10;
-    const barH = 5;
-    ctx.fillStyle = isDark ? 'rgba(148,163,184,0.15)' : 'rgba(100,116,139,0.15)';
-    drawRoundedRect(ctx, padL, barY, plotW, barH, 3);
-    ctx.fill();
-    const thumbX = padL + (view.startIdx / total) * plotW;
-    const thumbW = Math.max(18, (n / total) * plotW);
-    ctx.fillStyle = '#f59e0b';
-    drawRoundedRect(ctx, thumbX, barY, Math.min(plotW - (thumbX - padL), thumbW), barH, 3);
-    ctx.fill();
-
-    // 4. Render Smooth Spline Curves
-    const badges = [];
-    function renderSmoothCurve(arr, strokeColor, gradTop, gradMid) {
-      const pts = [];
-      for (let i = 0; i < n; i++) {
-        pts.push({
-          x: padL + (i / (n - 1)) * plotW,
-          y: padT + plotH * (1 - Math.min(maxVal, arr[i]) / maxVal)
-        });
+    // 2. Clean X-Axis Time Gridlines
+    ctx.textAlign = 'center';
+    if (win.isFixedDay) {
+      // Solarman-style fixed hour markers: 06:00, 08:00, 10:00, 12:00, 14:00, 16:00, 18:00
+      for (let h = 6; h <= 18; h += 2) {
+        const m = h * 60;
+        const x = padL + ((m - win.minM) / (win.maxM - win.minM)) * plotW;
+        ctx.strokeStyle = gridStroke;
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, padT + plotH);
+        ctx.stroke();
+        ctx.fillStyle = labelColor;
+        ctx.fillText(String(h).padStart(2, '0') + ':00', x, padT + plotH + 19);
       }
+    } else if (pts.length >= 2) {
+      const ticks = Math.min(5, pts.length);
+      for (let t = 0; t < ticks; t++) {
+        const idx = Math.round((t / (ticks - 1)) * (pts.length - 1));
+        const x = getPointX(pts[idx], idx, pts.length, win, padL, plotW);
+        ctx.fillStyle = labelColor;
+        ctx.fillText(pts[idx].t, x, padT + plotH + 19);
+      }
+    }
+
+    if (pts.length < 2) {
+      ctx.fillStyle = labelColor;
+      ctx.font = '700 13px sans-serif';
+      ctx.fillText('Đang tải dữ liệu biểu đồ từ biến tần...', padL + plotW / 2, padT + plotH / 2);
+      return;
+    }
+
+    // 3. Draw Smooth Filled Curves
+    const renderedSeries = [];
+    function drawSeries(key, color, fillTop) {
+      const coords = pts.map((p, i) => ({
+        x: getPointX(p, i, pts.length, win, padL, plotW),
+        y: padT + plotH * (1 - Math.min(maxY, p[key]) / maxY),
+        raw: p
+      }));
 
       ctx.save();
       ctx.beginPath();
-      traceSmoothSpline(ctx, pts);
-      ctx.lineTo(pts[n - 1].x, padT + plotH);
-      ctx.lineTo(pts[0].x, padT + plotH);
+      traceMonotoneSpline(ctx, coords);
+      ctx.lineTo(coords[coords.length - 1].x, padT + plotH);
+      ctx.lineTo(coords[0].x, padT + plotH);
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, padT, 0, padT + plotH);
-      grad.addColorStop(0, gradTop);
-      grad.addColorStop(0.55, gradMid);
-      grad.addColorStop(1, 'rgba(0,0,0,0.0)');
+      grad.addColorStop(0, fillTop);
+      grad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fill();
       ctx.restore();
 
       ctx.save();
       ctx.beginPath();
-      traceSmoothSpline(ctx, pts);
-      ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 3.2;
+      traceMonotoneSpline(ctx, coords);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.6;
       ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
       ctx.stroke();
       ctx.restore();
 
-      // If zoomed in (<= 35 points visible), show subtle point markers along the curve so tapping points is super clear
-      if (n <= 35) {
-        for (let i = 0; i < n; i++) {
-          ctx.beginPath();
-          ctx.arc(pts[i].x, pts[i].y, 2.8, 0, Math.PI * 2);
-          ctx.fillStyle = strokeColor;
-          ctx.fill();
-        }
-      }
-
-      const lastPt = pts[n - 1];
+      // Live pulse dot at latest point
+      const last = coords[coords.length - 1];
       ctx.beginPath();
-      ctx.arc(lastPt.x, lastPt.y, 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = strokeColor;
+      ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
       ctx.stroke();
 
-      badges.push({ y: lastPt.y, val: arr[n - 1], color: strokeColor, pts: pts });
+      renderedSeries.push({ key, color, coords });
     }
 
-    if (showGrid) renderSmoothCurve(view.grid, '#ef4444', 'rgba(239,68,68,0.28)', 'rgba(239,68,68,0.06)');
-    if (showLoad) renderSmoothCurve(view.load, '#10b981', 'rgba(16,185,129,0.30)', 'rgba(16,185,129,0.07)');
-    if (showPv)   renderSmoothCurve(view.pv,   '#f59e0b', 'rgba(245,158,11,0.38)', 'rgba(245,158,11,0.09)');
+    if (showGrid) drawSeries('grid', '#ef4444', 'rgba(239, 68, 68, 0.20)');
+    if (showLoad) drawSeries('load', '#10b981', 'rgba(16, 185, 129, 0.22)');
+    if (showPv)   drawSeries('pv',   '#f59e0b', 'rgba(245, 158, 11, 0.30)');
 
-    // 5. Right-margin current value pills
-    badges.sort((a, b) => a.y - b.y);
-    for (let i = 1; i < badges.length; i++) {
-      if (badges[i].y - badges[i - 1].y < 21) {
-        badges[i].y = badges[i - 1].y + 21;
+    // 4. Magnetic Crosshair + Clean Compact Floating Time Pill
+    if (inspectPoint) {
+      let matchIdx = -1;
+      for (let i = 0; i < pts.length; i++) {
+        if (pts[i].m === inspectPoint.m) { matchIdx = i; break; }
       }
-    }
-    const tipX = padL + plotW;
-    for (let b of badges) {
-      const by = Math.max(padT + 9, Math.min(padT + plotH - 2, b.y));
-      ctx.fillStyle = b.color;
-      drawRoundedRect(ctx, tipX + 6, by - 9, 56, 18, 5);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillText(b.val + 'W', tipX + 10, by + 4);
-    }
+      if (matchIdx >= 0) {
+        const cx = getPointX(pts[matchIdx], matchIdx, pts.length, win, padL, plotW);
 
-    // 6. Tapped / Selected Point Crosshair & Floating Callout Box directly inside the Chart!
-    const localIdx = selectedGlobalIdx - view.startIdx;
-    if (selectedGlobalIdx >= 0 && localIdx >= 0 && localIdx < n) {
-      const cx = padL + (localIdx / (n - 1)) * plotW;
-
-      // Vertical dashed crosshair
-      ctx.strokeStyle = isDark ? 'rgba(248,250,252,0.65)' : 'rgba(15,23,42,0.45)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(cx, padT);
-      ctx.lineTo(cx, padT + plotH);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Highlighted glowing circles on each curve at the tapped point
-      let minDotY = padT + plotH;
-      for (let b of badges) {
-        const pt = b.pts[localIdx];
-        if (!pt) continue;
-        if (pt.y < minDotY) minDotY = pt.y;
+        // Vertical guide line
+        ctx.save();
+        ctx.strokeStyle = isDark ? 'rgba(248, 250, 252, 0.7)' : 'rgba(15, 23, 42, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 7, 0, Math.PI * 2);
-        ctx.fillStyle = b.color;
-        ctx.fill();
-        ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#ffffff';
+        ctx.moveTo(cx, padT);
+        ctx.lineTo(cx, padT + plotH);
         ctx.stroke();
+        ctx.restore();
+
+        // Glowing dots on each active curve
+        for (const s of renderedSeries) {
+          const pt = s.coords[matchIdx];
+          if (!pt) continue;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+          ctx.fillStyle = s.color;
+          ctx.fill();
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+        }
+
+        // Compact floating tooltip card at top of chart (smart left/right flip)
+        const cardW = 148, cardH = 74;
+        let bx = cx + 12;
+        if (bx + cardW > padL + plotW) bx = cx - cardW - 12;
+        bx = Math.max(padL + 4, bx);
+        const by = padT + 6;
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.18)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.93)' : 'rgba(255, 255, 255, 0.95)';
+        roundRect(ctx, bx, by, cardW, cardH, 10);
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = '#f59e0b';
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.textAlign = 'left';
+        ctx.font = '800 11.5px -apple-system, sans-serif';
+        ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
+        ctx.fillText(`🕒 Lúc ${pts[matchIdx].t}`, bx + 9, by + 17);
+
+        ctx.font = '700 11px -apple-system, sans-serif';
+        ctx.fillStyle = '#d97706';
+        ctx.fillText(`☀️ Mặt trời: ${pts[matchIdx].pv} W`, bx + 9, by + 35);
+        ctx.fillStyle = '#059669';
+        ctx.fillText(`🏠 Nhà dùng: ${pts[matchIdx].load} W`, bx + 9, by + 51);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillText(`🔌 Lưới EVN: ${pts[matchIdx].grid} W`, bx + 9, by + 67);
       }
-
-      // Draw Floating Callout Card directly inside Canvas next to the tapped point!
-      const boxW = 166;
-      const boxH = 86;
-      let boxX = cx + 14;
-      if (boxX + boxW > padL + plotW - 4) {
-        boxX = cx - boxW - 14;
-      }
-      boxX = Math.max(padL + 4, boxX);
-      let boxY = Math.max(padT + 4, Math.min(padT + plotH - boxH - 8, minDotY - 24));
-      lastTooltipBox = { x: boxX, y: boxY, w: boxW, h: boxH };
-
-      ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.22)';
-      ctx.shadowBlur = 12;
-      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)';
-      drawRoundedRect(ctx, boxX, boxY, boxW, boxH, 10);
-      ctx.fill();
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = '#f59e0b';
-      ctx.stroke();
-      ctx.restore();
-
-      const tStr = view.t[localIdx];
-      const pvW = view.pv[localIdx];
-      const ldW = view.load[localIdx];
-      const gdW = view.grid[localIdx];
-
-      ctx.font = 'bold 12px sans-serif';
-      ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
-      ctx.fillText('🕒 Lúc ' + tStr, boxX + 10, boxY + 20);
-      ctx.fillStyle = textColor;
-      ctx.fillText('✕', boxX + boxW - 18, boxY + 19);
-
-      ctx.font = 'bold 11.5px sans-serif';
-      ctx.fillStyle = '#d97706';
-      ctx.fillText(`☀️ Mặt trời:  ${pvW} W`, boxX + 10, boxY + 40);
-      ctx.fillStyle = '#059669';
-      ctx.fillText(`🏠 Nhà dùng: ${ldW} W`, boxX + 10, boxY + 58);
-      ctx.fillStyle = '#dc2626';
-      ctx.fillText(`🔌 Lưới EVN:  ${gdW} W`, boxX + 10, boxY + 76);
-    } else {
-      lastTooltipBox = null;
     }
   }
 
-  window.onload = initApp;
+  // ==================== THEME & SETTINGS ====================
+  function applyTheme(t) {
+    const dark = t === 'dark';
+    document.body.classList.toggle('dark', dark);
+    document.getElementById('themeBtn').innerText = dark ? '☀️ Sáng' : '🌙 Tối';
+    try { localStorage.setItem('solar_web_theme', t); } catch (e) {}
+    drawChart();
+  }
+
+  function toggleTheme() {
+    applyTheme(document.body.classList.contains('dark') ? 'light' : 'dark');
+  }
+
+  function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
+  function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
+
+  async function loadSavedConfig() {
+    try {
+      const r = await fetch(apiBase + '/api/config', { mode: 'cors' });
+      const c = await r.json();
+      document.getElementById('inpIp').value = c.host || '27.77.98.111';
+      document.getElementById('inpSn').value = c.logger_sn || 3555314224;
+      document.getElementById('inpMode').value = c.demo_mode ? 'demo' : 'real';
+    } catch (e) {}
+  }
+
+  async function saveSettings() {
+    const host = document.getElementById('inpIp').value.trim();
+    const sn = parseInt(document.getElementById('inpSn').value, 10) || 3555314224;
+    const demo = document.getElementById('inpMode').value === 'demo';
+    try {
+      await fetch(apiBase + '/api/config', {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host: host, logger_sn: sn, demo_mode: demo })
+      });
+    } catch (e) {}
+    closeSettings();
+    pollLive();
+  }
+
+  async function boot() {
+    loadLocalHistoryBackup();
+    try { applyTheme(localStorage.getItem('solar_web_theme') || 'light'); } catch (e) {}
+    resizeCanvas();
+    if (window.ResizeObserver) {
+      new ResizeObserver(() => resizeCanvas()).observe(document.getElementById('canvasStage'));
+    } else {
+      window.addEventListener('resize', resizeCanvas);
+    }
+    setupChartInteractions();
+
+    await resolveApiBase();
+    await loadSavedConfig();
+    await fetchServerHistory();
+    await pollLive();
+
+    setInterval(pollLive, 2000);
+    setInterval(fetchServerHistory, 30000);
+    setInterval(resolveApiBase, 60000);
+  }
+
+  window.addEventListener('DOMContentLoaded', boot);
 </script>
 </body>
 </html>
