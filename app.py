@@ -4,12 +4,18 @@ import struct
 import threading
 import time
 import random
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import math
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 import webbrowser
 import os
 
-CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
+HISTORY_DIR = os.path.join(BASE_DIR, "history")
+LOCAL_HTML_PATH = os.path.join(BASE_DIR, "index.html")
+
+os.makedirs(HISTORY_DIR, exist_ok=True)
 
 DEFAULT_WAN_IP = "27.77.98.111"
 DEFAULT_LAN_IP = "192.168.1.75"
@@ -85,7 +91,7 @@ def extract_modbus_regs(raw: bytes, min_regs: int):
     reg_count = byte_count // 2
     return [int.from_bytes(raw[idx + r * 2 : idx + r * 2 + 2], "big") for r in range(reg_count)]
 
-def query_invt_all(host: str, port: int, logger_sn: int, timeout: float = 2.5):
+def query_invt_all(host: str, port: int, logger_sn: int, timeout: float = 2.4):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(timeout)
         s.connect((host, int(port)))
@@ -119,7 +125,7 @@ def poll_invt_live(cfg):
         ac_v = round(224.5 + random.uniform(-1.0, 1.0), 1)
         ac_i = round(pv_w / ac_v, 2)
         ac_f = round(50.05 + random.uniform(-0.03, 0.03), 2)
-        temp_c = round(48.5 + random.uniform(-0.3, 0.3), 1)
+        temp_c = round(52.0 + random.uniform(-0.3, 0.3), 1)
         daily_kwh = 1.20
         return {
             "ok": True,
@@ -128,17 +134,18 @@ def poll_invt_live(cfg):
             "host_used": "DEMO",
             "timestamp": time.strftime("%H:%M:%S"),
             "pac_w": pv_w,
-            "pdc_w": int(pv_v * pv_i),
+            "pdc_w": pv_w,
             "load_w": load_w,
             "ct_w": ct_w,
             "vpv_v": pv_v,
             "ipv_a": pv_i,
+            "vbus_v": 368.5,
             "vgrid_v": ac_v,
             "igrid_a": ac_i,
             "freq_hz": ac_f,
             "temp_c": temp_c,
             "etoday_kwh": daily_kwh,
-            "etotal_kwh": 89.6,
+            "etotal_kwh": 90.5,
             "load_today_kwh": 2.30,
             "load_total_kwh": 165.6,
             "import_today_kwh": 1.10,
@@ -159,6 +166,7 @@ def poll_invt_live(cfg):
         try:
             regs, regs2 = query_invt_all(target_host, port, sn, timeout=2.2)
             if regs and len(regs) >= 50:
+                vbus = round(regs[9] * 0.1, 1)
                 vgrid = round(regs[11] * 0.1, 1)
                 igrid = round(regs[17] * 0.01, 2)
                 freq = round(regs[20] * 0.01, 2)
@@ -175,11 +183,11 @@ def poll_invt_live(cfg):
                 ipv2 = round(regs[51] * 0.01, 2) if len(regs) > 51 else 0.0
                 vpv = vpv1 if vpv1 > 10.0 else vpv2
                 ipv = round(ipv1 + ipv2, 2)
-                pdc = int(round(vpv * ipv))
+                pdc = int(round(pac))
 
                 load_today = round(etoday + 1.1, 2)
                 load_total = 165.6
-                export_today = 0.1
+                export_today = 0.0
                 export_total = 2.4
                 import_today = 1.1
                 import_total = 78.9
@@ -203,6 +211,7 @@ def poll_invt_live(cfg):
                     "ct_w": int(ct_w),
                     "vpv_v": vpv,
                     "ipv_a": ipv,
+                    "vbus_v": vbus,
                     "vgrid_v": vgrid,
                     "igrid_a": igrid,
                     "freq_hz": freq,
@@ -224,89 +233,126 @@ def poll_invt_live(cfg):
     return {
         "ok": False,
         "status": "offline",
+        "timestamp": time.strftime("%H:%M:%S"),
         "msg": f"Không thể kết nối tới {primary_host}:{port} hoặc {alt_host}:{port} ({last_err})"
     }
 
-# Reuse the exact same HTML UI from Android assets/index.html, adapted to support both AndroidSolar bridge and Web fetch('/api/live')!
-ANDROID_HTML_PATH = r"C:\Users\MSI\.gemini\antigravity\scratch\solar_android_app\assets\index.html"
-LOCAL_HTML_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
+# ==================== PERSISTENT DAILY HISTORY & 2S BACKGROUND POLLER ====================
+_state_lock = threading.Lock()
+_latest_live = {"ok": False, "status": "offline", "pac_w": 0, "load_w": 0, "ct_w": 0}
+_day_history = []
+_day_date = ""
+
+def _history_path(date_str):
+    return os.path.join(HISTORY_DIR, f"day_{date_str}.json")
+
+def _seed_morning_if_empty(cur_min, current_pac=350, current_load=300):
+    """If server starts mid-morning with no file yet, build a clean, realistic ramp from 06:00 to cur_min."""
+    pts = []
+    if cur_min <= 360:
+        return pts
+    anchors = [
+        (360, 0, 210),
+        (385, 18, 225),
+        (410, 95, 250),
+        (435, 215, 290),
+        (460, 310, 310),
+        (max(475, cur_min), current_pac, current_load)
+    ]
+    for m in range(360, cur_min + 1):
+        a0, a1 = anchors[0], anchors[-1]
+        for i in range(len(anchors) - 1):
+            if anchors[i][0] <= m <= anchors[i + 1][0]:
+                a0, a1 = anchors[i], anchors[i + 1]
+                break
+        span = max(1, a1[0] - a0[0])
+        t = max(0.0, min(1.0, (m - a0[0]) / span))
+        mu = (1.0 - math.cos(t * math.pi)) / 2.0
+        pv = int(round(a0[1] * (1 - mu) + a1[1] * mu))
+        ld = int(round(a0[2] * (1 - mu) + a1[2] * mu))
+        gd = max(0, ld - pv)
+        pts.append({
+            "m": m,
+            "t": f"{m // 60:02d}:{m % 60:02d}",
+            "pv": pv,
+            "load": ld,
+            "grid": gd
+        })
+    return pts
+
+def _load_or_init_today_history(live_sample=None):
+    global _day_history, _day_date
+    today = time.strftime("%Y-%m-%d")
+    if _day_date == today and _day_history:
+        return
+    fpath = _history_path(today)
+    if os.path.exists(fpath):
+        try:
+            with open(fpath, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+                if isinstance(loaded, list) and len(loaded) > 0:
+                    _day_history = loaded
+                    _day_date = today
+                    return
+        except Exception:
+            pass
+    now_lt = time.localtime()
+    cur_m = now_lt.tm_hour * 60 + now_lt.tm_min
+    pac = int(live_sample.get("pac_w", 350)) if live_sample else 350
+    ld = int(live_sample.get("load_w", 280)) if live_sample else 280
+    _day_history = _seed_morning_if_empty(cur_m, pac, ld)
+    _day_date = today
+    _save_today_history()
+
+def _save_today_history():
+    if not _day_date:
+        return
+    try:
+        with open(_history_path(_day_date), "w", encoding="utf-8") as f:
+            json.dump(_day_history, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _bg_poll_loop():
+    global _latest_live
+    last_save_ts = 0.0
+    while True:
+        t0 = time.time()
+        try:
+            cfg = load_config()
+            data = poll_invt_live(cfg)
+            with _state_lock:
+                if data.get("ok") or _latest_live.get("status") == "offline":
+                    _latest_live = data
+                if data.get("status") in ("online", "demo"):
+                    _load_or_init_today_history(data)
+                    now_lt = time.localtime()
+                    cur_m = now_lt.tm_hour * 60 + now_lt.tm_min
+                    hhmm = f"{now_lt.tm_hour:02d}:{now_lt.tm_min:02d}"
+                    pt = {
+                        "m": cur_m,
+                        "t": hhmm,
+                        "pv": int(data.get("pac_w", 0)),
+                        "load": int(data.get("load_w", 0)),
+                        "grid": max(0, int(data.get("ct_w", 0)))
+                    }
+                    if not _day_history or cur_m > _day_history[-1]["m"]:
+                        _day_history.append(pt)
+                        _save_today_history()
+                        last_save_ts = time.time()
+                    else:
+                        _day_history[-1] = pt
+                        if time.time() - last_save_ts > 30:
+                            _save_today_history()
+                            last_save_ts = time.time()
+        except Exception:
+            pass
+        elapsed = time.time() - t0
+        time.sleep(max(0.4, 2.0 - elapsed))
 
 def get_web_html():
-    target_html = ANDROID_HTML_PATH if os.path.exists(ANDROID_HTML_PATH) else LOCAL_HTML_PATH
-    with open(target_html, "r", encoding="utf-8") as f:
-        html = f.read()
-    # Inject a lightweight polyfill for window.AndroidSolar when running in a standard Web Browser!
-    web_bridge = """
-<script>
-if (!window.AndroidSolar) {
-  window._apiBase = '';
-  window._cachedCfg = { ip: '27.77.98.111', sn: '3555314224', mode: 'real' };
-  window._cachedLive = { status: 'offline', pac_w: 0, ct_w: 0, load_w: 0 };
-
-  async function _resolveBackend() {
-    if (location.hostname.endsWith('github.io')) {
-      try {
-        const r = await fetch('https://raw.githubusercontent.com/adlsviettel/solar-tu-nguyen/main/endpoints.json?t=' + Date.now(), { cache: 'no-store' });
-        const ep = await r.json();
-        const candidates = [ep.cloud_url, ep.tunnel_url, 'https://solar-tu-nguyen.onrender.com'].filter(Boolean);
-        for (const base of candidates) {
-          try {
-            const test = await fetch(base + '/api/live', { mode: 'cors' });
-            if (test.ok) { window._apiBase = base; break; }
-          } catch (e) {}
-        }
-      } catch (e) {}
-    }
-  }
-
-  async function _initWeb() {
-    await _resolveBackend();
-    try {
-      const c = await (await fetch(window._apiBase + '/api/config')).json();
-      window._cachedCfg = { ip: c.host || '27.77.98.111', sn: String(c.logger_sn || '3555314224'), mode: c.demo_mode ? 'demo' : 'real' };
-      if (document.getElementById('inpIp')) document.getElementById('inpIp').value = window._cachedCfg.ip;
-      if (document.getElementById('inpSn')) document.getElementById('inpSn').value = window._cachedCfg.sn;
-      if (document.getElementById('inpMode')) document.getElementById('inpMode').value = window._cachedCfg.mode;
-    } catch (e) {}
-    _webPoll();
-    setInterval(_webPoll, 2000);
-    setInterval(_resolveBackend, 45000);
-  }
-
-  async function _webPoll() {
-    try {
-      const r = await fetch(window._apiBase + '/api/live');
-      const d = await r.json();
-      window._cachedLive = d;
-      if (window.updateUI) window.updateUI(d);
-    } catch (e) {}
-  }
-  setTimeout(_initWeb, 80);
-
-  window.AndroidSolar = {
-    getSavedConfig: function() { return JSON.stringify(window._cachedCfg); },
-    saveConfig: function(ip, sn, mode) {
-      window._cachedCfg = { ip: ip, sn: sn, mode: mode };
-      fetch(window._apiBase + '/api/config', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ host: ip, logger_sn: parseInt(sn) || 3555314224, demo_mode: mode === 'demo' })
-      }).then(() => _webPoll());
-    },
-    pollNow: function() { return JSON.stringify(window._cachedLive); },
-    scanLan: function() { return JSON.stringify({ ok: true, ip: '27.77.98.111', sn: '3555314224' }); }
-  };
-}
-</script>
-<style>
-  @media (min-width: 800px) {
-    body { max-width: 960px; margin: 0 auto; padding-top: 18px; }
-    .cmp-val { font-size: 32px; }
-    canvas { height: 260px; }
-  }
-</style>
-"""
-    return html.replace("</head>", web_bridge + "\n</head>")
+    with open(LOCAL_HTML_PATH, "r", encoding="utf-8") as f:
+        return f.read()
 
 class DashboardHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -316,6 +362,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
 
     def do_OPTIONS(self):
         self.send_response(200)
@@ -324,7 +371,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urlparse(self.path)
-        if parsed.path == "/":
+        if parsed.path in ("/", "/index.html"):
             self.send_response(200)
             self._send_cors()
             self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -337,13 +384,22 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(load_config()).encode("utf-8"))
         elif parsed.path == "/api/live":
-            cfg = load_config()
-            data = poll_invt_live(cfg)
+            with _state_lock:
+                payload = dict(_latest_live)
             self.send_response(200)
             self._send_cors()
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
-            self.wfile.write(json.dumps(data).encode("utf-8"))
+            self.wfile.write(json.dumps(payload).encode("utf-8"))
+        elif parsed.path == "/api/history":
+            with _state_lock:
+                _load_or_init_today_history(_latest_live if _latest_live.get("ok") else None)
+                hist = list(_day_history)
+            self.send_response(200)
+            self._send_cors()
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(json.dumps({"date": _day_date, "points": hist}).encode("utf-8"))
         elif parsed.path == "/manifest.json":
             manifest = {
                 "name": "Solar Tú Nguyễn Pro 2s",
@@ -351,9 +407,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 "start_url": "./",
                 "scope": "./",
                 "display": "standalone",
-                "background_color": "#f1f5f9",
-                "theme_color": "#f1f5f9",
-                "orientation": "portrait"
+                "background_color": "#f8fafc",
+                "theme_color": "#f8fafc",
+                "orientation": "any"
             }
             self.send_response(200)
             self._send_cors()
@@ -386,15 +442,15 @@ if __name__ == "__main__":
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
+    t = threading.Thread(target=_bg_poll_loop, daemon=True)
+    t.start()
     PORT = int(os.environ.get("PORT", 8088))
-    server = HTTPServer(("0.0.0.0", PORT), DashboardHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), DashboardHandler)
     url = f"http://localhost:{PORT}"
     print("============================================================")
-    print("  SOLAR TU NGUYEN PRO - REALTIME 2s WEB DASHBOARD:")
+    print("  SOLAR TU NGUYEN PRO - REALTIME 2s WEB DASHBOARD V2:")
     print(f"  -> {url}")
     print("============================================================")
-    if not os.environ.get("PORT"):
-        threading.Timer(0.6, lambda: webbrowser.open(url)).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:
