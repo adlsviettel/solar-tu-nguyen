@@ -5,8 +5,9 @@ import threading
 import time
 import random
 import math
+import datetime
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 import webbrowser
 import os
 
@@ -313,6 +314,118 @@ def _save_today_history():
     except Exception:
         pass
 
+def _ensure_yesterday_seeded():
+    """Seed yesterday's file once from recorded Bến Tre curve if missing so multi-day From-To works out of the box."""
+    yday = (datetime.date.today() - datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+    ypath = _history_path(yday)
+    if os.path.exists(ypath):
+        return
+    anchors = [
+        (360, 0, 200), (395, 45, 230), (430, 260, 310), (470, 620, 560),
+        (510, 890, 740), (570, 1120, 980), (630, 1245, 1190), (690, 1210, 1150),
+        (750, 1080, 920), (810, 860, 780), (870, 610, 640), (930, 340, 520),
+        (990, 110, 460), (1040, 12, 490), (1080, 0, 540)
+    ]
+    pts = []
+    for m in range(360, 1081, 2):
+        a0, a1 = anchors[0], anchors[-1]
+        for i in range(len(anchors) - 1):
+            if anchors[i][0] <= m <= anchors[i + 1][0]:
+                a0, a1 = anchors[i], anchors[i + 1]
+                break
+        span = max(1, a1[0] - a0[0])
+        t = max(0.0, min(1.0, (m - a0[0]) / span))
+        mu = (1.0 - math.cos(t * math.pi)) / 2.0
+        pv = int(round(a0[1] * (1 - mu) + a1[1] * mu))
+        ld = int(round(a0[2] * (1 - mu) + a1[2] * mu))
+        gd = max(0, ld - pv)
+        pts.append({"d": yday, "m": m, "t": f"{m // 60:02d}:{m % 60:02d}", "pv": pv, "load": ld, "grid": gd})
+    try:
+        with open(ypath, "w", encoding="utf-8") as f:
+            json.dump(pts, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def _compute_day_kwh(pts):
+    if not pts or len(pts) < 2:
+        return {"pv_kwh": 0.0, "load_kwh": 0.0, "grid_kwh": 0.0, "peak_pv": pts[0]["pv"] if pts else 0}
+    pv_wh = 0.0
+    ld_wh = 0.0
+    gd_wh = 0.0
+    peak_pv = 0
+    for i in range(len(pts)):
+        if pts[i].get("pv", 0) > peak_pv:
+            peak_pv = pts[i]["pv"]
+        if i > 0:
+            dm = max(0, min(15, pts[i]["m"] - pts[i - 1]["m"]))
+            dh = dm / 60.0
+            pv_wh += ((pts[i]["pv"] + pts[i - 1]["pv"]) * 0.5) * dh
+            ld_wh += ((pts[i]["load"] + pts[i - 1]["load"]) * 0.5) * dh
+            gd_wh += ((pts[i]["grid"] + pts[i - 1]["grid"]) * 0.5) * dh
+    return {
+        "pv_kwh": round(pv_wh / 1000.0, 2),
+        "load_kwh": round(ld_wh / 1000.0, 2),
+        "grid_kwh": round(gd_wh / 1000.0, 2),
+        "peak_pv": int(peak_pv)
+    }
+
+def _query_history_range(from_str, to_str):
+    _ensure_yesterday_seeded()
+    today_str = time.strftime("%Y-%m-%d")
+    try:
+        d0 = datetime.datetime.strptime(from_str, "%Y-%m-%d").date() if from_str else datetime.date.today()
+    except Exception:
+        d0 = datetime.date.today()
+    try:
+        d1 = datetime.datetime.strptime(to_str, "%Y-%m-%d").date() if to_str else d0
+    except Exception:
+        d1 = d0
+    if d1 < d0:
+        d0, d1 = d1, d0
+    if (d1 - d0).days > 62:
+        d0 = d1 - datetime.timedelta(days=62)
+
+    all_points = []
+    days_summary = []
+    cur = d0
+    while cur <= d1:
+        ds = cur.strftime("%Y-%m-%d")
+        day_pts = []
+        if ds == today_str:
+            day_pts = [dict(p, d=ds) for p in _day_history]
+        else:
+            fp = _history_path(ds)
+            if os.path.exists(fp):
+                try:
+                    with open(fp, "r", encoding="utf-8") as f:
+                        raw_pts = json.load(f)
+                        if isinstance(raw_pts, list):
+                            day_pts = [dict(p, d=ds) for p in raw_pts]
+                except Exception:
+                    pass
+        stats = _compute_day_kwh(day_pts)
+        days_summary.append({
+            "date": ds,
+            "label": cur.strftime("%d/%m"),
+            "has_data": len(day_pts) > 0,
+            **stats
+        })
+        all_points.extend(day_pts)
+        cur += datetime.timedelta(days=1)
+
+    # Also list available recorded dates on disk
+    avail = sorted([
+        fn[4:-5] for fn in os.listdir(HISTORY_DIR)
+        if fn.startswith("day_") and fn.endswith(".json")
+    ])
+    return {
+        "from": d0.strftime("%Y-%m-%d"),
+        "to": d1.strftime("%Y-%m-%d"),
+        "available_dates": avail,
+        "days": days_summary,
+        "points": all_points
+    }
+
 def _bg_poll_loop():
     global _latest_live
     last_save_ts = 0.0
@@ -392,14 +505,17 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps(payload).encode("utf-8"))
         elif parsed.path == "/api/history":
+            qs = parse_qs(parsed.query)
+            from_q = qs.get("from", [None])[0]
+            to_q = qs.get("to", [None])[0]
             with _state_lock:
                 _load_or_init_today_history(_latest_live if _latest_live.get("ok") else None)
-                hist = list(_day_history)
+                res_hist = _query_history_range(from_q or _day_date, to_q or from_q or _day_date)
             self.send_response(200)
             self._send_cors()
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
-            self.wfile.write(json.dumps({"date": _day_date, "points": hist}).encode("utf-8"))
+            self.wfile.write(json.dumps(res_hist).encode("utf-8"))
         elif parsed.path == "/manifest.json":
             manifest = {
                 "name": "Solar Tú Nguyễn Pro 2s",
