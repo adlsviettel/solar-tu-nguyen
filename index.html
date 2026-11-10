@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Solar 2s">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.svg">
-<title>Solar Tú Nguyễn • Giám Sát 2 Giây</title>
+<title>Solar Tú Nguyễn • Giám Sát & Biểu Đồ From-To</title>
 <style>
   :root {
     --bg: #f1f5f9;
@@ -64,13 +64,13 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: max(12px, env(safe-area-inset-top)) 12px max(24px, env(safe-area-inset-bottom)) 12px;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(28px, env(safe-area-inset-bottom)) 12px;
     transition: background 0.2s, color 0.2s;
     line-height: 1.4;
   }
 
   .container {
-    max-width: 1240px;
+    max-width: 1200px;
     margin: 0 auto;
   }
 
@@ -125,20 +125,54 @@
     transition: 0.15s;
   }
   .icon-btn:hover { border-color: var(--solar-line); }
-  .icon-btn:active { transform: scale(0.96); }
 
-  /* RESPONSIVE DASHBOARD GRID */
-  .dash-grid {
+  /* MAIN 2-PAGE VIEW SWITCHER (SEPARATES LIVE OVERVIEW vs FROM-TO CHART) */
+  .main-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 6px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .m-tab {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13.5px;
+    font-weight: 800;
+    padding: 11px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: 0.18s;
+  }
+  .m-tab.active {
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.28);
+  }
+
+  .view-pane { display: none; }
+  .view-pane.active { display: block; }
+
+  /* LIVE PANE GRID */
+  .live-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 14px;
   }
-  @media (min-width: 980px) {
-    .dash-grid {
-      grid-template-columns: 440px 1fr;
-      align-items: start;
+  @media (min-width: 920px) {
+    .live-grid {
+      grid-template-columns: 1.08fr 0.92fr;
+      align-items: stretch;
     }
-    .col-right { position: sticky; top: 14px; }
   }
 
   .card {
@@ -147,9 +181,7 @@
     border-radius: 20px;
     padding: 16px;
     box-shadow: var(--shadow);
-    margin-bottom: 12px;
   }
-  .card:last-child { margin-bottom: 0; }
 
   .sec-head {
     display: flex; justify-content: space-between; align-items: center;
@@ -165,11 +197,11 @@
   .kpi-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 10px;
   }
   .kpi-box {
     border-radius: 16px;
-    padding: 12px 10px;
+    padding: 14px 11px;
     border: 1.5px solid var(--border);
     display: flex; flex-direction: column; justify-content: space-between;
   }
@@ -178,7 +210,7 @@
   .kpi-gridc { background: var(--grid-bg);  border-color: var(--grid-bd); }
 
   .kpi-lbl { font-size: 11px; font-weight: 800; color: var(--text); opacity: 0.85; }
-  .kpi-num { font-size: 26px; font-weight: 900; margin: 6px 0 4px 0; line-height: 1.05; letter-spacing: -0.5px; }
+  .kpi-num { font-size: 28px; font-weight: 900; margin: 7px 0 5px 0; line-height: 1.05; letter-spacing: -0.5px; }
   .kpi-unit { font-size: 13px; font-weight: 800; }
   .kpi-badge {
     display: inline-block; align-self: flex-start;
@@ -187,26 +219,26 @@
   }
   body.dark .kpi-badge { background: rgba(255, 255, 255, 0.09); }
   .kpi-foot {
-    font-size: 11px; font-weight: 700; color: var(--text);
+    font-size: 11.5px; font-weight: 700; color: var(--text);
     padding-top: 6px; border-top: 1px dashed rgba(100, 116, 139, 0.28);
   }
   .kpi-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; font-weight: 600; }
 
   /* RATIO BAR */
   .ratio-box {
-    margin-top: 12px;
+    margin-top: 14px;
     background: var(--card-sub);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 12px 14px;
   }
   .ratio-labels {
-    display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 6px;
+    display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 800; margin-bottom: 7px;
   }
   .ratio-track {
-    height: 22px; border-radius: 99px; background: var(--grid-bg);
+    height: 24px; border-radius: 99px; background: var(--grid-bg);
     border: 1px solid var(--grid-bd); overflow: hidden; display: flex;
-    font-size: 11px; font-weight: 800; color: #fff;
+    font-size: 11.5px; font-weight: 800; color: #fff;
   }
   .ratio-solar {
     background: linear-gradient(90deg, #f59e0b, #10b981);
@@ -219,127 +251,27 @@
     transition: width 0.35s ease; white-space: nowrap; overflow: hidden;
   }
   .roof-hint {
-    margin-top: 8px; font-size: 11.5px; font-weight: 700; color: var(--muted);
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+    margin-top: 9px; font-size: 12px; font-weight: 700; color: var(--muted);
   }
 
-  /* ==================== NEW ULTRA-EASY INTERACTIVE CHART ==================== */
-  .time-tabs {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    background: var(--card-sub);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
-    margin-bottom: 12px;
-  }
-  .t-tab {
-    border: none; background: transparent; color: var(--muted);
-    font-size: 12px; font-weight: 800; padding: 8px 4px;
-    border-radius: 9px; cursor: pointer; transition: 0.15s;
-  }
-  .t-tab.active {
-    background: var(--card);
-    color: var(--solar);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
-  }
-
-  /* Dedicated Inspector / Readout Strip (Never overlaps curves!) */
-  .inspector-bar {
-    background: var(--card-sub);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .inspector-bar.scrubbing {
-    border-color: var(--solar-line);
+  .goto-chart-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 13px;
+    border: 1.5px solid var(--solar-bd);
     background: var(--solar-bg);
+    color: var(--solar);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.15s;
   }
-  .insp-top {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 8px; gap: 8px;
-  }
-  .insp-time {
-    font-size: 13px; font-weight: 900; color: var(--text);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .insp-clear {
-    border: none; background: rgba(15, 23, 42, 0.08); color: var(--text);
-    font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px;
-    cursor: pointer; display: none;
-  }
-  body.dark .insp-clear { background: rgba(255, 255, 255, 0.14); }
-  .inspector-bar.scrubbing .insp-clear { display: inline-block; }
-
-  .series-pills {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  }
-  .s-pill {
-    background: var(--card); border: 1.5px solid var(--border);
-    border-radius: 11px; padding: 7px 10px; cursor: pointer;
-    display: flex; flex-direction: column; gap: 2px;
-    transition: 0.15s; user-select: none;
-  }
-  .s-pill.off { opacity: 0.35; filter: grayscale(1); }
-  .s-pill-lbl {
-    font-size: 11px; font-weight: 700; color: var(--muted);
-    display: flex; align-items: center; gap: 6px;
-  }
-  .s-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .s-pill-val { font-size: 17px; font-weight: 900; }
-
-  /* Canvas Stage: touch-action: pan-y unlocks vertical page scroll on iOS/Android! */
-  .canvas-stage {
-    position: relative;
-    width: 100%;
-    height: 300px;
-    background: var(--card-sub);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
-  @media (min-width: 980px) {
-    .canvas-stage { height: 360px; }
-  }
-  #solarCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-    touch-action: pan-y;
-    cursor: crosshair;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  /* Smooth Scrubber Slider for Zoomed Windows */
-  .scrubber-wrap {
-    margin-top: 10px;
-    background: var(--card-sub);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 9px 12px;
-    display: none;
-  }
-  .scrubber-wrap.show { display: block; }
-  .scrubber-head {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 11.5px; font-weight: 800; color: var(--muted); margin-bottom: 6px;
-  }
-  .scrubber-head button {
-    border: none; background: var(--load); color: #fff;
-    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 800; cursor: pointer;
-  }
-  input[type="range"].time-slider {
-    width: 100%; accent-color: var(--solar-line); height: 6px; cursor: pointer;
-  }
-
-  .chart-foot-tip {
-    margin-top: 8px; font-size: 11.5px; color: var(--muted); font-weight: 600;
-    text-align: center;
-  }
+  .goto-chart-btn:hover { filter: brightness(0.97); }
 
   /* PROPORTIONAL ENERGY FLOW DIAGRAM */
   .flow-box {
@@ -351,7 +283,7 @@
   .flow-svg-full {
     width: 100%;
     height: auto;
-    max-height: 230px;
+    max-height: 225px;
     display: block;
   }
   .flow-wire-bg { fill: none; stroke: var(--border); stroke-width: 4; stroke-linecap: round; }
@@ -364,7 +296,6 @@
   @keyframes dashMove { to { stroke-dashoffset: -18; } }
   @keyframes dashMoveRev { to { stroke-dashoffset: 18; } }
 
-  /* TECH SPECS GRID */
   .specs-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -380,6 +311,227 @@
   }
   .spec-cell span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
   .spec-cell b { font-size: 12.5px; color: var(--text); font-weight: 800; }
+
+  /* ==================== SEPARATED FROM-TO DATE CHART WORKSPACE ==================== */
+  .filter-panel {
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .from-to-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 10px;
+    align-items: end;
+  }
+  @media (max-width: 760px) {
+    .from-to-grid { grid-template-columns: 1fr; }
+  }
+  .dt-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .dt-group label {
+    font-size: 11.5px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .dt-inputs {
+    display: flex;
+    gap: 6px;
+  }
+  .dt-inputs input[type="date"] {
+    flex: 1.35;
+    min-width: 0;
+  }
+  .dt-inputs input[type="time"] {
+    flex: 0.85;
+    min-width: 92px;
+  }
+  .dt-inputs input {
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+  }
+  .dt-inputs input:focus { border-color: var(--solar-line); }
+
+  .btn-apply-range {
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+    color: #fff;
+    font-size: 13.5px;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(234, 88, 12, 0.25);
+  }
+  .btn-apply-range:active { transform: scale(0.97); }
+
+  /* Quick Date Presets */
+  .quick-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 11px;
+    padding-top: 11px;
+    border-top: 1px dashed var(--border);
+    align-items: center;
+  }
+  .qp-label { font-size: 11.5px; font-weight: 800; color: var(--muted); margin-right: 4px; }
+  .qp-btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    padding: 6px 11px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .qp-btn.active, .qp-btn:hover {
+    border-color: var(--solar-line);
+    background: var(--solar-bg);
+    color: var(--solar);
+  }
+
+  /* Summary Totals for Selected From-To Period */
+  .period-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 680px) {
+    .period-summary { grid-template-columns: repeat(2, 1fr); }
+  }
+  .ps-card {
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 10px 12px;
+  }
+  .ps-lbl { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .ps-val { font-size: 18px; font-weight: 900; margin-top: 2px; }
+  .ps-sub { font-size: 10.5px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+
+  /* Multi-day Chart Type Toggle (Daily Bar vs Continuous Line) */
+  .chart-mode-bar {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 7px 10px;
+    margin-bottom: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .chart-mode-bar.show { display: flex; }
+  .cm-btns { display: flex; gap: 6px; }
+  .cm-btn {
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .cm-btn.active {
+    background: var(--solar-bg);
+    color: var(--solar);
+    border-color: var(--solar-line);
+  }
+
+  /* Inspector Strip above Canvas */
+  .inspector-bar {
+    background: var(--card-sub);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    transition: 0.15s;
+  }
+  .inspector-bar.scrubbing {
+    border-color: var(--solar-line);
+    background: var(--solar-bg);
+  }
+  .insp-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; gap: 8px; flex-wrap: wrap;
+  }
+  .insp-time { font-size: 13px; font-weight: 900; color: var(--text); }
+  .insp-actions { display: flex; gap: 6px; align-items: center; }
+  .insp-btn {
+    border: none; background: rgba(15, 23, 42, 0.08); color: var(--text);
+    font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 99px;
+    cursor: pointer; display: none;
+  }
+  body.dark .insp-btn { background: rgba(255, 255, 255, 0.14); }
+  .inspector-bar.scrubbing .insp-btn.clear-btn { display: inline-block; }
+
+  .series-pills {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .s-pill {
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: 11px; padding: 8px 11px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 2px;
+    transition: 0.15s; user-select: none;
+  }
+  .s-pill.off { opacity: 0.35; filter: grayscale(1); }
+  .s-pill-lbl {
+    font-size: 11px; font-weight: 700; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .s-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .s-pill-val { font-size: 17px; font-weight: 900; }
+
+  /* Generous Full-Width Canvas Stage */
+  .canvas-stage {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    background: var(--card-sub);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  @media (min-width: 820px) {
+    .canvas-stage { height: 410px; }
+  }
+  #solarCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: pan-y;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .chart-foot-tip {
+    margin-top: 9px; font-size: 12px; color: var(--muted); font-weight: 600;
+    text-align: center;
+  }
 
   /* SETTINGS MODAL */
   .modal-backdrop {
@@ -422,10 +574,11 @@
     font-family: monospace; font-size: 11.5px; color: var(--load); word-break: break-word;
   }
 
-  @media (max-width: 420px) {
+  @media (max-width: 440px) {
     .kpi-num { font-size: 21px; }
     .s-pill-val { font-size: 15px; }
     .money-chip { display: none; }
+    .m-tab { font-size: 12.5px; padding: 10px 6px; }
   }
 </style>
 </head>
@@ -439,11 +592,11 @@
       <div class="brand-text">
         <h1>Solar Tú Nguyễn • 1.89 kWp</h1>
         <div class="brand-sub">
-          <span class="status-pill" id="statusPill">
+          <span class="status-pill">
             <span class="status-dot" id="statusDot"></span>
             <span id="statusText">ĐANG KẾT NỐI...</span>
           </span>
-          <span>Cập nhật: <b id="lastTime">--:--:--</b></span>
+          <span>Lúc: <b id="lastTime">--:--:--</b></span>
         </div>
       </div>
     </div>
@@ -454,17 +607,26 @@
     </div>
   </header>
 
-  <main class="dash-grid">
-    <!-- LEFT COLUMN: KPI SUMMARY + FLOW & SPECS -->
-    <div class="col-left">
+  <!-- 2 SEPARATE, SPACIOUS TABS: [1] LIVE OVERVIEW  |  [2] FROM-TO DATE CHART -->
+  <nav class="main-tabs">
+    <button class="m-tab active" id="navLive" onclick="switchPane('live')">
+      ⚡ Giám Sát Trực Tiếp (2s)
+    </button>
+    <button class="m-tab" id="navChart" onclick="switchPane('chart')">
+      📊 Biểu Đồ Tra Cứu (From – To)
+    </button>
+  </nav>
+
+  <!-- ==================== PANE 1: LIVE REAL-TIME OVERVIEW ==================== -->
+  <div class="view-pane active" id="paneLive">
+    <div class="live-grid">
       <section class="card">
         <div class="sec-head">
-          <span class="sec-title">⚡ Công Suất Thực Tế (2 Giây/Lần)</span>
-          <span class="sec-meta" id="moneySubMobile">Tiết kiệm: 0đ</span>
+          <span class="sec-title">⚡ Công Suất Thời Gian Thực</span>
+          <span class="sec-meta" id="moneySubMobile">💰 Tiết kiệm: 0đ</span>
         </div>
 
         <div class="kpi-grid">
-          <!-- SOLAR -->
           <div class="kpi-box kpi-solar">
             <div>
               <div class="kpi-lbl">☀️ MẶT TRỜI</div>
@@ -477,7 +639,6 @@
             </div>
           </div>
 
-          <!-- HOME LOAD -->
           <div class="kpi-box kpi-load">
             <div>
               <div class="kpi-lbl">🏠 NHÀ DÙNG</div>
@@ -490,7 +651,6 @@
             </div>
           </div>
 
-          <!-- EVN GRID -->
           <div class="kpi-box kpi-gridc">
             <div>
               <div class="kpi-lbl" id="lblGridTitle">🔌 LƯỚI EVN</div>
@@ -513,22 +673,22 @@
             <div class="ratio-solar" id="barSolarFill" style="width:100%">100%</div>
             <div class="ratio-evn" id="barGridFill" style="width:0%"></div>
           </div>
-          <div class="roof-hint">
-            <span id="excessText">☀️ Đang đồng bộ dữ liệu biến tần INVT...</span>
-          </div>
+          <div class="roof-hint" id="excessText">☀️ Đang đồng bộ dữ liệu biến tần INVT...</div>
         </div>
+
+        <button class="goto-chart-btn" onclick="switchPane('chart')">
+          📊 Xem Biểu Đồ Chi Tiết Theo Từ Ngày – Đến Ngày (From – To) →
+        </button>
       </section>
 
-      <!-- CLEAN PROPORTIONAL SVG ENERGY FLOW + TECH SPECS -->
       <section class="card">
         <div class="sec-head">
           <span class="sec-title">🔄 Sơ Đồ Dòng Điện & Kỹ Thuật Máy</span>
-          <span class="sec-meta" id="hdrTemp">IGBT: --°C</span>
+          <span class="sec-meta" id="hdrTemp">Tâm IGBT: --°C</span>
         </div>
 
         <div class="flow-box">
           <svg class="flow-svg-full" viewBox="0 0 460 200">
-            <!-- Connecting Wires -->
             <path class="flow-wire-bg" d="M 135 52 L 190 52 L 210 85" />
             <path id="wirePv" class="flow-wire-act flow-wire-off" stroke="#f59e0b" d="M 135 52 L 190 52 L 210 85" />
 
@@ -540,31 +700,26 @@
 
             <path class="flow-wire-bg" stroke-dasharray="4 5" d="M 135 150 L 190 150 L 210 118" />
 
-            <!-- PV Node -->
             <rect x="8" y="16" width="128" height="72" rx="14" fill="var(--card)" stroke="#f59e0b" stroke-width="2"/>
             <text x="72" y="36" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">☀️ GIÀN PIN 3x630W</text>
             <text x="72" y="59" text-anchor="middle" font-size="18" font-weight="900" fill="#d97706" id="svgPvW">0 W</text>
             <text x="72" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)" id="svgPvSub">0.0V • 0.00A</text>
 
-            <!-- Grid Node -->
             <rect x="324" y="16" width="128" height="72" rx="14" fill="var(--card)" stroke="#ef4444" stroke-width="2"/>
             <text x="388" y="36" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🗼 LƯỚI ĐIỆN EVN</text>
             <text x="388" y="59" text-anchor="middle" font-size="18" font-weight="900" fill="#dc2626" id="svgGridW">0 W</text>
             <text x="388" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="var(--muted)" id="svgGridSub">225V • 50.0Hz</text>
 
-            <!-- Center Inverter Hub -->
             <rect x="184" y="66" width="92" height="70" rx="18" fill="var(--card)" stroke="#8b5cf6" stroke-width="2.5"/>
             <text x="230" y="88" text-anchor="middle" font-size="11" font-weight="900" fill="#7c3aed">INVT 3kW</text>
             <text x="230" y="108" text-anchor="middle" font-size="15" font-weight="900" fill="var(--text)">⚡</text>
             <text x="230" y="126" text-anchor="middle" font-size="11.5" font-weight="800" fill="#e11d48" id="svgTemp">--°C</text>
 
-            <!-- Battery Future Node -->
-            <rect x="8" y="114" width="128" height="70" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="1.5" opacity="0.8"/>
+            <rect x="8" y="114" width="128" height="70" rx="14" fill="var(--card)" stroke="var(--border)" stroke-width="1.5" opacity="0.85"/>
             <text x="72" y="135" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🔋 BUS DC NỘI BỘ</text>
             <text x="72" y="157" text-anchor="middle" font-size="16" font-weight="900" fill="var(--text)" id="svgVbus">368.9 V</text>
             <text x="72" y="174" text-anchor="middle" font-size="10.5" font-weight="700" fill="var(--muted)">Bám tải CT Zero-Export</text>
 
-            <!-- Home Load Node -->
             <rect x="324" y="114" width="128" height="70" rx="14" fill="var(--card)" stroke="#10b981" stroke-width="2"/>
             <text x="388" y="135" text-anchor="middle" font-size="11" font-weight="800" fill="var(--muted)">🏠 TẢI TRONG NHÀ</text>
             <text x="388" y="157" text-anchor="middle" font-size="18" font-weight="900" fill="#059669" id="svgLoadW">0 W</text>
@@ -580,65 +735,118 @@
         </div>
       </section>
     </div>
+  </div>
 
-    <!-- RIGHT COLUMN: SUPER INTUITIVE SOLARMAN-STYLE CHART -->
-    <div class="col-right">
-      <section class="card">
-        <div class="sec-head">
-          <span class="sec-title">📈 Biểu Đồ Công Suất Trong Ngày</span>
-          <span class="sec-meta" id="chartWindowLabel">Khung: Cả ngày (06:00 – 18:30)</span>
-        </div>
+  <!-- ==================== PANE 2: DEDICATED FULL-WIDTH FROM-TO CHART ==================== -->
+  <div class="view-pane" id="paneChart">
+    <section class="card">
+      <div class="sec-head">
+        <span class="sec-title">📊 Tra Cứu Biểu Đồ Từ Ngày – Đến Ngày (From – To Date)</span>
+        <span class="sec-meta" id="activeRangeBadge">Đang xem: Hôm nay</span>
+      </div>
 
-        <!-- 4 Simple 1-Tap Timeframe Presets -->
-        <div class="time-tabs">
-          <button class="t-tab active" id="tabDay" onclick="setRangeMode('day')">📅 Cả ngày</button>
-          <button class="t-tab" id="tab3h" onclick="setRangeMode('3h')">🕒 3 Giờ</button>
-          <button class="t-tab" id="tab1h" onclick="setRangeMode('1h')">🕐 1 Giờ</button>
-          <button class="t-tab" id="tab15m" onclick="setRangeMode('15m')">⚡ 15 Phút</button>
-        </div>
-
-        <!-- Dedicated Readout / Inspector Header (Always Clear, Never Blocks Chart!) -->
-        <div class="inspector-bar" id="inspectorBar">
-          <div class="insp-top">
-            <div class="insp-time" id="inspTitle">🟢 Đang phát trực tiếp • Hiện tại</div>
-            <button class="insp-clear" onclick="clearInspect()">✕ Quay về Live</button>
-          </div>
-          <div class="series-pills">
-            <div class="s-pill" id="pillPv" onclick="toggleLine('pv')" style="border-color:var(--solar-bd)">
-              <div class="s-pill-lbl"><span class="s-dot" style="background:#f59e0b"></span>Mặt trời</div>
-              <div class="s-pill-val" style="color:var(--solar)" id="inspPv">0 W</div>
-            </div>
-            <div class="s-pill" id="pillLoad" onclick="toggleLine('load')" style="border-color:var(--load-bd)">
-              <div class="s-pill-lbl"><span class="s-dot" style="background:#10b981"></span>Nhà dùng</div>
-              <div class="s-pill-val" style="color:var(--load)" id="inspLoad">0 W</div>
-            </div>
-            <div class="s-pill" id="pillGrid" onclick="toggleLine('grid')" style="border-color:var(--grid-bd)">
-              <div class="s-pill-lbl"><span class="s-dot" style="background:#ef4444"></span>Lưới EVN</div>
-              <div class="s-pill-val" style="color:var(--grid)" id="inspGrid">0 W</div>
+      <!-- FROM - TO DATE & TIME FILTER BAR -->
+      <div class="filter-panel">
+        <div class="from-to-grid">
+          <div class="dt-group">
+            <label>📅 Từ ngày & giờ (From)</label>
+            <div class="dt-inputs">
+              <input type="date" id="inpFromDate" onchange="onDateInputChanged()">
+              <input type="time" id="inpFromTime" value="06:00" onchange="applyFromToFilter(false)">
             </div>
           </div>
-        </div>
 
-        <!-- Razor-Sharp Retina Canvas -->
-        <div class="canvas-stage" id="canvasStage">
-          <canvas id="solarCanvas"></canvas>
-        </div>
-
-        <!-- Clean Scrubber Slider (Only appears in 15m / 1h / 3h modes to pan smoothly without fighting touch!) -->
-        <div class="scrubber-wrap" id="scrubberWrap">
-          <div class="scrubber-head">
-            <span id="scrubberTxt">⏪ Kéo thanh trượt để xem lại giờ trước</span>
-            <button id="btnBackLive" onclick="snapSliderToLive()" style="display:none">⏩ Về Hiện Tại</button>
+          <div class="dt-group">
+            <label>➡️ Đến ngày & giờ (To)</label>
+            <div class="dt-inputs">
+              <input type="date" id="inpToDate" onchange="onDateInputChanged()">
+              <input type="time" id="inpToTime" value="18:30" onchange="applyFromToFilter(false)">
+            </div>
           </div>
-          <input type="range" class="time-slider" id="timeSlider" min="0" max="100" value="100" oninput="onSliderScrub(this.value)">
+
+          <button class="btn-apply-range" onclick="applyFromToFilter(true)">🔍 Lọc Biểu Đồ</button>
         </div>
 
-        <div class="chart-foot-tip">
-          💡 Chạm hoặc lướt ngón tay / chuột ngang trên biểu đồ để xem chính xác từng phút • Bấm ô màu phía trên để ẩn/hiện đường vẽ
+        <div class="quick-presets">
+          <span class="qp-label">Chọn nhanh:</span>
+          <button class="qp-btn active" id="qpToday" onclick="applyPreset('today')">☀️ Hôm nay (06h–18h30)</button>
+          <button class="qp-btn" id="qpMorning" onclick="applyPreset('morning')">🌅 Sáng nay (06h–12h)</button>
+          <button class="qp-btn" id="qpAfternoon" onclick="applyPreset('afternoon')">🌤️ Chiều nay (12h–18h30)</button>
+          <button class="qp-btn" id="qpYesterday" onclick="applyPreset('yesterday')">⏮️ Hôm qua</button>
+          <button class="qp-btn" id="qp3d" onclick="applyPreset('3d')">📆 3 Ngày qua</button>
+          <button class="qp-btn" id="qp7d" onclick="applyPreset('7d')">📊 7 Ngày qua</button>
+          <button class="qp-btn" id="qpMonth" onclick="applyPreset('month')">🗓️ Tháng này</button>
         </div>
-      </section>
-    </div>
-  </main>
+      </div>
+
+      <!-- CALCULATED SUMMARY TOTALS FOR SELECTED FROM-TO PERIOD -->
+      <div class="period-summary">
+        <div class="ps-card" style="border-color:var(--solar-bd)">
+          <div class="ps-lbl">☀️ Tổng Mặt Trời (Khoảng chọn)</div>
+          <div class="ps-val" style="color:var(--solar)" id="sumPvKwh">0.00 kWh</div>
+          <div class="ps-sub" id="sumPeakW">Đỉnh phát: 0 W</div>
+        </div>
+        <div class="ps-card" style="border-color:var(--load-bd)">
+          <div class="ps-lbl">🏠 Tổng Điện Nhà Dùng</div>
+          <div class="ps-val" style="color:var(--load)" id="sumLoadKwh">0.00 kWh</div>
+          <div class="ps-sub" id="sumSelfRatio">Tự chủ: 0%</div>
+        </div>
+        <div class="ps-card" style="border-color:var(--grid-bd)">
+          <div class="ps-lbl">🔌 Tổng Mua Lưới EVN</div>
+          <div class="ps-val" style="color:var(--grid)" id="sumGridKwh">0.00 kWh</div>
+          <div class="ps-sub">Điện lấy từ EVN</div>
+        </div>
+        <div class="ps-card">
+          <div class="ps-lbl">💰 Tiền Điện Tiết Kiệm</div>
+          <div class="ps-val" style="color:var(--load)" id="sumMoney">0 đ</div>
+          <div class="ps-sub">Tạm tính bậc sinh hoạt</div>
+        </div>
+      </div>
+
+      <!-- MULTI-DAY MODE BAR (Appears automatically when From Date != To Date) -->
+      <div class="chart-mode-bar" id="multiDayBar">
+        <span style="font-size:12px;font-weight:800;color:var(--muted)">Kiểu hiển thị nhiều ngày:</span>
+        <div class="cm-btns">
+          <button class="cm-btn active" id="btnModeBar" onclick="setMultiChartStyle('bar')">📊 Biểu Đồ Cột Từng Ngày (kWh)</button>
+          <button class="cm-btn" id="btnModeLine" onclick="setMultiChartStyle('line')">📈 Đường Công Suất Nối Liền (W)</button>
+        </div>
+      </div>
+
+      <!-- DEDICATED INSPECTOR READOUT HEADER -->
+      <div class="inspector-bar" id="inspectorBar">
+        <div class="insp-top">
+          <div class="insp-time" id="inspTitle">🟢 Chạm hoặc rê chuột trên biểu đồ để xem từng thời điểm</div>
+          <div class="insp-actions">
+            <button class="insp-btn" id="btnDrillDay" style="background:var(--solar);color:#fff" onclick="drillSelectedDay()">🔍 Xem chi tiết ngày này</button>
+            <button class="insp-btn clear-btn" onclick="clearInspect()">✕ Bỏ chọn</button>
+          </div>
+        </div>
+        <div class="series-pills">
+          <div class="s-pill" id="pillPv" onclick="toggleLine('pv')" style="border-color:var(--solar-bd)">
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#f59e0b"></span>Mặt trời (bấm ẩn/hiện)</div>
+            <div class="s-pill-val" style="color:var(--solar)" id="inspPv">0 W</div>
+          </div>
+          <div class="s-pill" id="pillLoad" onclick="toggleLine('load')" style="border-color:var(--load-bd)">
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#10b981"></span>Nhà dùng (bấm ẩn/hiện)</div>
+            <div class="s-pill-val" style="color:var(--load)" id="inspLoad">0 W</div>
+          </div>
+          <div class="s-pill" id="pillGrid" onclick="toggleLine('grid')" style="border-color:var(--grid-bd)">
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#ef4444"></span>Lưới EVN (bấm ẩn/hiện)</div>
+            <div class="s-pill-val" style="color:var(--grid)" id="inspGrid">0 W</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FULL-WIDTH RETINA CANVAS -->
+      <div class="canvas-stage" id="canvasStage">
+        <canvas id="solarCanvas"></canvas>
+      </div>
+
+      <div class="chart-foot-tip" id="chartFootTip">
+        💡 Chọn Từ ngày/giờ → Đến ngày/giờ ở trên để lọc bất kỳ khoảng thời gian nào • Rê chuột hoặc lướt ngón tay ngang để dò chính xác từng điểm
+      </div>
+    </section>
+  </div>
 </div>
 
 <!-- SETTINGS MODAL -->
@@ -673,20 +881,56 @@
 </div>
 
 <script>
-  // ==================== BACKEND AUTO-DISCOVERY (LOCAL + CLOUDFLARE TUNNEL + GITHUB PAGES) ====================
+  // ==================== GLOBAL STATE ====================
   let apiBase = '';
+  let currentPane = 'live'; // 'live' | 'chart'
   let latestLive = { pac_w: 0, load_w: 0, ct_w: 0, status: 'offline' };
-  let dayPoints = []; // [{ m: 480, t: '08:00', pv: 350, load: 290, grid: 0 }, ...]
 
-  // Chart State
-  let rangeMode = 'day'; // 'day' | '3h' | '1h' | '15m'
-  let sliderEndIdx = -1; // -1 means locked to latest live point
+  // From-To Range Data
+  let rawRangePoints = []; // [{ d: '2026-11-10', m: 480, t: '08:00', pv: 350, load: 290, grid: 0 }, ...]
+  let rawRangeDays = [];   // [{ date: '2026-11-10', label: '10/11', pv_kwh: 1.2, load_kwh: 1.5, grid_kwh: 0.3, peak_pv: 850 }, ...]
+  let multiChartStyle = 'bar'; // 'bar' (kWh/day) | 'line' (W continuous) when fromDate != toDate
   let showPv = true, showLoad = true, showGrid = true;
 
-  // Crosshair / Inspection State
-  let inspectPoint = null; // { m, t, pv, load, grid } or null when live
+  // Crosshair Inspection
+  let inspectItem = null; // Either a point { type:'pt', d, m, t, pv, load, grid } or day { type:'day', date, label, pv_kwh, load_kwh, grid_kwh, peak_pv }
   let inspectPinned = false;
 
+  function toLocalIsoDate(dt) {
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function formatVnDate(isoStr) {
+    if (!isoStr) return '';
+    const p = isoStr.split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : isoStr;
+  }
+
+  function parseHhmmToMin(hhmm, fallback) {
+    if (!hhmm || !hhmm.includes(':')) return fallback;
+    const [h, m] = hhmm.split(':').map(Number);
+    return (isNaN(h) ? 0 : h) * 60 + (isNaN(m) ? 0 : m);
+  }
+
+  // ==================== VIEW SWITCHER ====================
+  function switchPane(which) {
+    currentPane = which;
+    document.getElementById('navLive').classList.toggle('active', which === 'live');
+    document.getElementById('navChart').classList.toggle('active', which === 'chart');
+    document.getElementById('paneLive').classList.toggle('active', which === 'live');
+    document.getElementById('paneChart').classList.toggle('active', which === 'chart');
+    if (which === 'chart') {
+      requestAnimationFrame(() => {
+        resizeCanvas();
+        drawChart();
+      });
+    }
+  }
+
+  // ==================== BACKEND DISCOVERY & LIVE POLLING ====================
   async function resolveApiBase() {
     if (!location.hostname.endsWith('github.io')) {
       apiBase = '';
@@ -711,50 +955,20 @@
     } catch (e) {}
   }
 
-  function loadLocalHistoryBackup() {
-    const key = 'solar_web_hist_' + new Date().toISOString().slice(0, 10);
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) dayPoints = parsed;
-      }
-    } catch (e) {}
-  }
-
-  function saveLocalHistoryBackup() {
-    const key = 'solar_web_hist_' + new Date().toISOString().slice(0, 10);
-    try { localStorage.setItem(key, JSON.stringify(dayPoints)); } catch (e) {}
-  }
-
-  async function fetchServerHistory() {
-    try {
-      const r = await fetch(apiBase + '/api/history', { mode: 'cors' });
-      if (!r.ok) return;
-      const j = await r.json();
-      if (Array.isArray(j.points) && j.points.length >= dayPoints.length) {
-        dayPoints = j.points;
-        saveLocalHistoryBackup();
-        syncSliderBounds();
-        drawChart();
-      }
-    } catch (e) {}
-  }
-
   async function pollLive() {
     try {
       const r = await fetch(apiBase + '/api/live', { mode: 'cors' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const d = await r.json();
       latestLive = d;
-      renderLiveTelemetry(d);
+      renderLiveOverview(d);
     } catch (e) {
-      document.getElementById('statusText').innerText = 'ĐANG TÌM KẾT NỐI...';
+      document.getElementById('statusText').innerText = 'ĐANG KẾT NỐI LẠI...';
       document.getElementById('statusDot').style.background = '#f59e0b';
     }
   }
 
-  function renderLiveTelemetry(d) {
+  function renderLiveOverview(d) {
     const stTxt = document.getElementById('statusText');
     const stDot = document.getElementById('statusDot');
     if (d.status === 'online') {
@@ -788,7 +1002,6 @@
     const loadToday = d.load_today_kwh !== undefined ? d.load_today_kwh : (etoday + impToday);
     const loadTotal = d.load_total_kwh || 0;
 
-    // Excess roof solar estimate
     const now = new Date();
     const decH = now.getHours() + now.getMinutes() / 60;
     let clearSkyW = 0;
@@ -881,103 +1094,214 @@
       document.getElementById('wireGrid').setAttribute('class', 'flow-wire-act flow-wire-rev');
     }
 
-    // Record live point into dayPoints
-    if (d.status === 'online' || d.status === 'demo') {
+    // Also append live point if today is included in current From-To filter!
+    const todayIso = toLocalIsoDate(now);
+    const toVal = document.getElementById('inpToDate').value;
+    if ((d.status === 'online' || d.status === 'demo') && toVal === todayIso) {
       const curM = now.getHours() * 60 + now.getMinutes();
       const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-      const pt = { m: curM, t: hhmm, pv: pac, load: load, grid: gridIn };
-      if (dayPoints.length === 0 || curM > dayPoints[dayPoints.length - 1].m) {
-        dayPoints.push(pt);
-        saveLocalHistoryBackup();
+      const pt = { d: todayIso, m: curM, t: hhmm, pv: pac, load: load, grid: gridIn };
+      if (rawRangePoints.length === 0) {
+        rawRangePoints.push(pt);
       } else {
-        dayPoints[dayPoints.length - 1] = pt;
+        const last = rawRangePoints[rawRangePoints.length - 1];
+        if (last.d === todayIso && curM === last.m) {
+          rawRangePoints[rawRangePoints.length - 1] = pt;
+        } else if (last.d === todayIso && curM > last.m) {
+          rawRangePoints.push(pt);
+        }
       }
-      syncSliderBounds();
+      if (currentPane === 'chart') {
+        recomputePeriodSummary();
+        if (!inspectItem) updateInspectorDisplay();
+        drawChart();
+      }
+    }
+  }
+
+  // ==================== FROM - TO DATE & TIME FILTER ENGINE ====================
+  function highlightPreset(id) {
+    document.querySelectorAll('.qp-btn').forEach(b => b.classList.remove('active'));
+    if (id && document.getElementById(id)) document.getElementById(id).classList.add('active');
+  }
+
+  function applyPreset(which) {
+    const now = new Date();
+    const today = toLocalIsoDate(now);
+    const fDate = document.getElementById('inpFromDate');
+    const tDate = document.getElementById('inpToDate');
+    const fTime = document.getElementById('inpFromTime');
+    const tTime = document.getElementById('inpToTime');
+
+    if (which === 'today') {
+      fDate.value = today; tDate.value = today;
+      fTime.value = '06:00'; tTime.value = '18:30';
+      highlightPreset('qpToday');
+    } else if (which === 'morning') {
+      fDate.value = today; tDate.value = today;
+      fTime.value = '06:00'; tTime.value = '12:00';
+      highlightPreset('qpMorning');
+    } else if (which === 'afternoon') {
+      fDate.value = today; tDate.value = today;
+      fTime.value = '12:00'; tTime.value = '18:30';
+      highlightPreset('qpAfternoon');
+    } else if (which === 'yesterday') {
+      const yd = new Date(now); yd.setDate(yd.getDate() - 1);
+      const yIso = toLocalIsoDate(yd);
+      fDate.value = yIso; tDate.value = yIso;
+      fTime.value = '06:00'; tTime.value = '18:30';
+      highlightPreset('qpYesterday');
+    } else if (which === '3d') {
+      const d0 = new Date(now); d0.setDate(d0.getDate() - 2);
+      fDate.value = toLocalIsoDate(d0); tDate.value = today;
+      fTime.value = '00:00'; tTime.value = '23:59';
+      highlightPreset('qp3d');
+    } else if (which === '7d') {
+      const d0 = new Date(now); d0.setDate(d0.getDate() - 6);
+      fDate.value = toLocalIsoDate(d0); tDate.value = today;
+      fTime.value = '00:00'; tTime.value = '23:59';
+      highlightPreset('qp7d');
+    } else if (which === 'month') {
+      const d0 = new Date(now.getFullYear(), now.getMonth(), 1);
+      fDate.value = toLocalIsoDate(d0); tDate.value = today;
+      fTime.value = '00:00'; tTime.value = '23:59';
+      highlightPreset('qpMonth');
+    }
+    applyFromToFilter(true);
+  }
+
+  function onDateInputChanged() {
+    highlightPreset(null);
+    const fDate = document.getElementById('inpFromDate').value;
+    const tDate = document.getElementById('inpToDate').value;
+    if (fDate && tDate && fDate !== tDate) {
+      document.getElementById('inpFromTime').value = '00:00';
+      document.getElementById('inpToTime').value = '23:59';
+    } else if (fDate && fDate === tDate) {
+      if (document.getElementById('inpFromTime').value === '00:00') {
+        document.getElementById('inpFromTime').value = '06:00';
+        document.getElementById('inpToTime').value = '18:30';
+      }
+    }
+    applyFromToFilter(true);
+  }
+
+  async function applyFromToFilter(fetchFromServer = true) {
+    let fDate = document.getElementById('inpFromDate').value;
+    let tDate = document.getElementById('inpToDate').value;
+    if (!fDate) { fDate = toLocalIsoDate(new Date()); document.getElementById('inpFromDate').value = fDate; }
+    if (!tDate) { tDate = fDate; document.getElementById('inpToDate').value = tDate; }
+    if (tDate < fDate) {
+      const tmp = fDate; fDate = tDate; tDate = tmp;
+      document.getElementById('inpFromDate').value = fDate;
+      document.getElementById('inpToDate').value = tDate;
     }
 
+    const fTime = document.getElementById('inpFromTime').value || '06:00';
+    const tTime = document.getElementById('inpToTime').value || '18:30';
+    const isMultiDay = fDate !== tDate;
+
+    document.getElementById('multiDayBar').classList.toggle('show', isMultiDay);
+    document.getElementById('activeRangeBadge').innerText = isMultiDay
+      ? `${formatVnDate(fDate)} → ${formatVnDate(tDate)}`
+      : `${formatVnDate(fDate)} (${fTime} → ${tTime})`;
+
+    if (fetchFromServer) {
+      try {
+        const url = `${apiBase}/api/history?from=${encodeURIComponent(fDate)}&to=${encodeURIComponent(tDate)}`;
+        const r = await fetch(url, { mode: 'cors' });
+        if (r.ok) {
+          const j = await r.json();
+          rawRangePoints = Array.isArray(j.points) ? j.points.map(p => ({ ...p, d: p.d || fDate })) : [];
+          rawRangeDays = Array.isArray(j.days) ? j.days : [];
+        }
+      } catch (e) {}
+    }
+
+    clearInspect(false);
+    recomputePeriodSummary();
     updateInspectorDisplay();
     drawChart();
   }
 
-  // ==================== INTUITIVE CHART ENGINE (RETINA + MAGNETIC SCRUBBER) ====================
-  function setRangeMode(mode) {
-    rangeMode = mode;
-    ['day', '3h', '1h', '15m'].forEach(k => {
-      const id = k === 'day' ? 'tabDay' : 'tab' + k;
-      document.getElementById(id).classList.toggle('active', k === mode);
+  function getFilteredData() {
+    const fDate = document.getElementById('inpFromDate').value;
+    const tDate = document.getElementById('inpToDate').value;
+    const minM = parseHhmmToMin(document.getElementById('inpFromTime').value, 360);
+    const maxM = Math.max(minM + 10, parseHhmmToMin(document.getElementById('inpToTime').value, 1110));
+    const isMultiDay = fDate !== tDate;
+
+    const pts = rawRangePoints.filter(p => {
+      if (p.d < fDate || p.d > tDate) return false;
+      if (!isMultiDay) {
+        return p.m >= minM && p.m <= maxM;
+      }
+      if (p.d === fDate && p.m < minM) return false;
+      if (p.d === tDate && p.m > maxM) return false;
+      return true;
     });
-    sliderEndIdx = -1; // Snap to latest when switching tab
+
+    return { fDate, tDate, minM, maxM, isMultiDay, pts, days: rawRangeDays };
+  }
+
+  function recomputePeriodSummary() {
+    const { pts, days, isMultiDay } = getFilteredData();
+    let pvKwh = 0, ldKwh = 0, gdKwh = 0, peakW = 0;
+
+    if (isMultiDay && days.length > 0) {
+      for (const dy of days) {
+        pvKwh += dy.pv_kwh || 0;
+        ldKwh += dy.load_kwh || 0;
+        gdKwh += dy.grid_kwh || 0;
+        if ((dy.peak_pv || 0) > peakW) peakW = dy.peak_pv;
+      }
+    } else if (pts.length >= 2) {
+      let pvWh = 0, ldWh = 0, gdWh = 0;
+      for (let i = 0; i < pts.length; i++) {
+        if (pts[i].pv > peakW) peakW = pts[i].pv;
+        if (i > 0 && pts[i].d === pts[i - 1].d) {
+          const dm = Math.max(0, Math.min(15, pts[i].m - pts[i - 1].m));
+          const dh = dm / 60;
+          pvWh += ((pts[i].pv + pts[i - 1].pv) * 0.5) * dh;
+          ldWh += ((pts[i].load + pts[i - 1].load) * 0.5) * dh;
+          gdWh += ((pts[i].grid + pts[i - 1].grid) * 0.5) * dh;
+        }
+      }
+      pvKwh = pvWh / 1000;
+      ldKwh = ldWh / 1000;
+      gdKwh = gdWh / 1000;
+    } else if (pts.length === 1) {
+      peakW = pts[0].pv;
+    }
+
+    const selfRatio = ldKwh > 0.01 ? Math.min(100, Math.round(((ldKwh - gdKwh) / ldKwh) * 100)) : (pvKwh > 0 ? 100 : 0);
+    const money = Math.round(pvKwh * 3732.48);
+
+    document.getElementById('sumPvKwh').innerText = `${pvKwh.toFixed(2)} kWh`;
+    document.getElementById('sumPeakW').innerText = `Đỉnh công suất: ${peakW} W`;
+    document.getElementById('sumLoadKwh').innerText = `${ldKwh.toFixed(2)} kWh`;
+    document.getElementById('sumSelfRatio').innerText = `Tự chủ: ${Math.max(0, selfRatio)}%`;
+    document.getElementById('sumGridKwh').innerText = `${gdKwh.toFixed(2)} kWh`;
+    document.getElementById('sumMoney').innerText = `${money.toLocaleString('vi-VN')} đ`;
+  }
+
+  function setMultiChartStyle(style) {
+    multiChartStyle = style;
+    document.getElementById('btnModeBar').classList.toggle('active', style === 'bar');
+    document.getElementById('btnModeLine').classList.toggle('active', style === 'line');
     clearInspect(false);
-    syncSliderBounds();
+    updateInspectorDisplay();
     drawChart();
   }
 
-  function getWindowPoints() {
-    if (dayPoints.length === 0) return { pts: [], isFixedDay: true, minM: 360, maxM: 1110 };
-
-    if (rangeMode === 'day') {
-      document.getElementById('scrubberWrap').classList.remove('show');
-      document.getElementById('chartWindowLabel').innerText = 'Khung: Cả ngày (06:00 – 18:30)';
-      return {
-        pts: dayPoints,
-        isFixedDay: true,
-        minM: 360,  // 06:00
-        maxM: Math.max(1110, dayPoints[dayPoints.length - 1].m + 15) // 18:30
-      };
-    }
-
-    const winLen = rangeMode === '3h' ? 180 : (rangeMode === '1h' ? 60 : 16);
-    const total = dayPoints.length;
-    document.getElementById('scrubberWrap').classList.toggle('show', total > winLen);
-
-    const endIdx = (sliderEndIdx < 0 || sliderEndIdx >= total - 1) ? (total - 1) : sliderEndIdx;
-    const startIdx = Math.max(0, endIdx - winLen + 1);
-    const slice = dayPoints.slice(startIdx, endIdx + 1);
-
-    if (slice.length > 0) {
-      const lbl = `${slice[0].t} → ${slice[slice.length - 1].t}`;
-      document.getElementById('chartWindowLabel').innerText = `Khung: ${lbl}`;
-      document.getElementById('scrubberTxt').innerText =
-        endIdx >= total - 1 ? `🟢 Đang xem mới nhất (${lbl})` : `⏪ Đang xem lại khung ${lbl}`;
-      document.getElementById('btnBackLive').style.display = endIdx < total - 1 ? 'inline-block' : 'none';
-    }
-
-    return {
-      pts: slice,
-      isFixedDay: false,
-      minM: slice.length ? slice[0].m : 360,
-      maxM: slice.length ? Math.max(slice[0].m + 1, slice[slice.length - 1].m) : 420
-    };
-  }
-
-  function syncSliderBounds() {
-    const slider = document.getElementById('timeSlider');
-    if (!slider || dayPoints.length < 2) return;
-    const winLen = rangeMode === '3h' ? 180 : (rangeMode === '1h' ? 60 : 16);
-    const minEnd = Math.min(dayPoints.length - 1, winLen - 1);
-    slider.min = minEnd;
-    slider.max = dayPoints.length - 1;
-    if (sliderEndIdx < 0 || sliderEndIdx >= dayPoints.length - 1) {
-      slider.value = dayPoints.length - 1;
-    }
-  }
-
-  function onSliderScrub(val) {
-    const idx = parseInt(val, 10);
-    if (idx >= dayPoints.length - 1) {
-      sliderEndIdx = -1;
-    } else {
-      sliderEndIdx = idx;
-    }
-    clearInspect(false);
-    drawChart();
-  }
-
-  function snapSliderToLive() {
-    sliderEndIdx = -1;
-    syncSliderBounds();
-    clearInspect(false);
-    drawChart();
+  function drillSelectedDay() {
+    if (!inspectItem || inspectItem.type !== 'day') return;
+    document.getElementById('inpFromDate').value = inspectItem.date;
+    document.getElementById('inpToDate').value = inspectItem.date;
+    document.getElementById('inpFromTime').value = '06:00';
+    document.getElementById('inpToTime').value = '18:30';
+    highlightPreset(null);
+    applyFromToFilter(true);
   }
 
   function toggleLine(which) {
@@ -996,35 +1320,58 @@
 
   function updateInspectorDisplay() {
     const bar = document.getElementById('inspectorBar');
-    if (inspectPoint) {
+    const drillBtn = document.getElementById('btnDrillDay');
+    drillBtn.style.display = 'none';
+
+    if (inspectItem) {
       bar.classList.add('scrubbing');
-      document.getElementById('inspTitle').innerHTML =
-        `📍 Đang xem lúc <b>${inspectPoint.t}</b> ${inspectPinned ? '(Đã ghim)' : ''}`;
-      document.getElementById('inspPv').innerText = `${inspectPoint.pv} W`;
-      document.getElementById('inspLoad').innerText = `${inspectPoint.load} W`;
-      document.getElementById('inspGrid').innerText = `${inspectPoint.grid} W`;
+      if (inspectItem.type === 'day') {
+        document.getElementById('inspTitle').innerHTML =
+          `📅 Ngày <b>${formatVnDate(inspectItem.date)}</b> (Đỉnh: ${inspectItem.peak_pv} W)`;
+        document.getElementById('inspPv').innerText = `${inspectItem.pv_kwh.toFixed(2)} kWh`;
+        document.getElementById('inspLoad').innerText = `${inspectItem.load_kwh.toFixed(2)} kWh`;
+        document.getElementById('inspGrid').innerText = `${inspectItem.grid_kwh.toFixed(2)} kWh`;
+        drillBtn.style.display = 'inline-block';
+      } else {
+        const dtTag = inspectItem.showDate ? `${inspectItem.d.slice(8, 10)}/${inspectItem.d.slice(5, 7)} ` : '';
+        document.getElementById('inspTitle').innerHTML =
+          `📍 Đang dò lúc <b>${dtTag}${inspectItem.t}</b> ${inspectPinned ? '(Đã ghim)' : ''}`;
+        document.getElementById('inspPv').innerText = `${inspectItem.pv} W`;
+        document.getElementById('inspLoad').innerText = `${inspectItem.load} W`;
+        document.getElementById('inspGrid').innerText = `${inspectItem.grid} W`;
+      }
     } else {
       bar.classList.remove('scrubbing');
-      const pac = Math.round(latestLive.pac_w || 0);
-      const load = Math.round(latestLive.load_w || 0);
-      const grid = Math.max(0, Math.round(latestLive.ct_w || 0));
-      const nowT = latestLive.timestamp ? latestLive.timestamp.slice(0, 5) : 'Hiện tại';
-      document.getElementById('inspTitle').innerHTML = `🟢 Trực tiếp lúc <b>${nowT}</b>`;
-      document.getElementById('inspPv').innerText = `${pac} W`;
-      document.getElementById('inspLoad').innerText = `${load} W`;
-      document.getElementById('inspGrid').innerText = `${grid} W`;
+      const { pts, isMultiDay } = getFilteredData();
+      if (isMultiDay && multiChartStyle === 'bar') {
+        document.getElementById('inspTitle').innerHTML = `📊 Chạm vào cột ngày bất kỳ để xem chi tiết kWh`;
+        document.getElementById('inspPv').innerText = document.getElementById('sumPvKwh').innerText;
+        document.getElementById('inspLoad').innerText = document.getElementById('sumLoadKwh').innerText;
+        document.getElementById('inspGrid').innerText = document.getElementById('sumGridKwh').innerText;
+      } else if (pts.length > 0) {
+        const last = pts[pts.length - 1];
+        document.getElementById('inspTitle').innerHTML = `🟢 Điểm cuối trong khoảng chọn (<b>${last.t}</b>)`;
+        document.getElementById('inspPv').innerText = `${last.pv} W`;
+        document.getElementById('inspLoad').innerText = `${last.load} W`;
+        document.getElementById('inspGrid').innerText = `${last.grid} W`;
+      } else {
+        document.getElementById('inspTitle').innerHTML = `⚠️ Chưa có bản ghi trong khung giờ này`;
+        document.getElementById('inspPv').innerText = `0 W`;
+        document.getElementById('inspLoad').innerText = `0 W`;
+        document.getElementById('inspGrid').innerText = `0 W`;
+      }
     }
   }
 
   function clearInspect(redraw = true) {
-    inspectPoint = null;
+    inspectItem = null;
     inspectPinned = false;
     updateInspectorDisplay();
     if (redraw) drawChart();
   }
 
-  // Resize Retina HiDPI Canvas cleanly
-  let cssW = 600, cssH = 300;
+  // ==================== RETINA CANVAS & INTERACTIONS ====================
+  let cssW = 800, cssH = 380;
   function resizeCanvas() {
     const stage = document.getElementById('canvasStage');
     const canvas = document.getElementById('solarCanvas');
@@ -1038,52 +1385,54 @@
     canvas.height = Math.round(cssH * dpr);
     const ctx = canvas.getContext('2d');
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawChart();
   }
 
-  function getPointX(pt, idx, n, win, padL, plotW) {
-    if (win.isFixedDay) {
-      const ratio = (pt.m - win.minM) / Math.max(1, win.maxM - win.minM);
+  function getPointX(pt, idx, n, flt, padL, plotW) {
+    if (!flt.isMultiDay) {
+      const ratio = (pt.m - flt.minM) / Math.max(1, flt.maxM - flt.minM);
       return padL + Math.max(0, Math.min(1, ratio)) * plotW;
     }
     if (n <= 1) return padL + plotW / 2;
     return padL + (idx / (n - 1)) * plotW;
   }
 
-  function findNearestPointAtClientX(clientX) {
+  function hitTestAtClientX(clientX) {
     const canvas = document.getElementById('solarCanvas');
     if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
     const x = clientX - rect.left;
-    const padL = 46, padR = 16;
+    const padL = 50, padR = 18;
     const plotW = Math.max(40, cssW - padL - padR);
-    const win = getWindowPoints();
-    const pts = win.pts;
-    if (!pts || pts.length === 0) return null;
+    const flt = getFilteredData();
 
-    let best = pts[0];
-    let bestDist = Infinity;
-    for (let i = 0; i < pts.length; i++) {
-      const px = getPointX(pts[i], i, pts.length, win, padL, plotW);
-      const d = Math.abs(x - px);
-      if (d < bestDist) {
-        bestDist = d;
-        best = pts[i];
-      }
+    if (flt.isMultiDay && multiChartStyle === 'bar') {
+      const days = flt.days;
+      if (!days || days.length === 0) return null;
+      const slotW = plotW / days.length;
+      const idx = Math.max(0, Math.min(days.length - 1, Math.floor((x - padL) / slotW)));
+      return { type: 'day', idx, ...days[idx] };
     }
-    return best;
+
+    const pts = flt.pts;
+    if (!pts || pts.length === 0) return null;
+    let bestIdx = 0, bestDist = Infinity;
+    for (let i = 0; i < pts.length; i++) {
+      const px = getPointX(pts[i], i, pts.length, flt, padL, plotW);
+      const dist = Math.abs(x - px);
+      if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+    }
+    return { type: 'pt', idx: bestIdx, showDate: flt.isMultiDay, ...pts[bestIdx] };
   }
 
   function setupChartInteractions() {
     const canvas = document.getElementById('solarCanvas');
     if (!canvas) return;
 
-    // 1. PC Mouse: Effortless Hover Crosshair + Click to Pin/Unpin
     canvas.addEventListener('mousemove', e => {
       if (inspectPinned) return;
-      const pt = findNearestPointAtClientX(e.clientX);
-      if (pt) {
-        inspectPoint = pt;
+      const hit = hitTestAtClientX(e.clientX);
+      if (hit) {
+        inspectItem = hit;
         updateInspectorDisplay();
         drawChart();
       }
@@ -1094,49 +1443,43 @@
     });
 
     canvas.addEventListener('click', e => {
-      const pt = findNearestPointAtClientX(e.clientX);
-      if (!pt) return;
-      if (inspectPinned && inspectPoint && inspectPoint.m === pt.m) {
+      const hit = hitTestAtClientX(e.clientX);
+      if (!hit) return;
+      const sameKey = inspectItem && (
+        (hit.type === 'day' && inspectItem.date === hit.date) ||
+        (hit.type === 'pt' && inspectItem.d === hit.d && inspectItem.m === hit.m)
+      );
+      if (inspectPinned && sameKey) {
         clearInspect();
       } else {
-        inspectPoint = pt;
+        inspectItem = hit;
         inspectPinned = true;
         updateInspectorDisplay();
         drawChart();
       }
     });
 
-    // 2. Mobile / iOS Touch: Smooth Horizontal Scrubbing WITHOUT blocking vertical page scroll (pan-y)!
-    let touchStartX = 0, touchStartY = 0;
-    let scrubMode = null; // null | 'scrub' | 'scroll'
-
+    let tStartX = 0, tStartY = 0, tMode = null;
     canvas.addEventListener('touchstart', e => {
       if (e.touches.length !== 1) return;
-      touchStartX = e.touches[0].clientX;
-      touchStartY = e.touches[0].clientY;
-      scrubMode = null;
+      tStartX = e.touches[0].clientX;
+      tStartY = e.touches[0].clientY;
+      tMode = null;
     }, { passive: true });
 
     canvas.addEventListener('touchmove', e => {
       if (e.touches.length !== 1) return;
-      const dx = Math.abs(e.touches[0].clientX - touchStartX);
-      const dy = Math.abs(e.touches[0].clientY - touchStartY);
-
-      if (!scrubMode) {
-        if (dy > 9 && dy > dx) {
-          scrubMode = 'scroll'; // Let browser scroll the page smoothly!
-          return;
-        }
-        if (dx > 6) {
-          scrubMode = 'scrub';
-        }
+      const dx = Math.abs(e.touches[0].clientX - tStartX);
+      const dy = Math.abs(e.touches[0].clientY - tStartY);
+      if (!tMode) {
+        if (dy > 9 && dy > dx) { tMode = 'scroll'; return; }
+        if (dx > 6) tMode = 'scrub';
       }
-
-      if (scrubMode === 'scrub') {
+      if (tMode === 'scrub') {
         if (e.cancelable) e.preventDefault();
-        const pt = findNearestPointAtClientX(e.touches[0].clientX);
-        if (pt) {
-          inspectPoint = pt;
+        const hit = hitTestAtClientX(e.touches[0].clientX);
+        if (hit) {
+          inspectItem = hit;
           inspectPinned = true;
           updateInspectorDisplay();
           drawChart();
@@ -1144,41 +1487,32 @@
       }
     }, { passive: false });
 
-    canvas.addEventListener('touchend', e => {
-      if (scrubMode === null) {
-        // Simple single tap on mobile
-        const pt = findNearestPointAtClientX(touchStartX);
-        if (pt) {
-          if (inspectPoint && inspectPoint.m === pt.m) {
-            clearInspect();
-          } else {
-            inspectPoint = pt;
-            inspectPinned = true;
-            updateInspectorDisplay();
-            drawChart();
-          }
+    canvas.addEventListener('touchend', () => {
+      if (tMode === null) {
+        const hit = hitTestAtClientX(tStartX);
+        if (hit) {
+          inspectItem = hit;
+          inspectPinned = true;
+          updateInspectorDisplay();
+          drawChart();
         }
       }
-      scrubMode = null;
+      tMode = null;
     });
 
-    // Click / Tap anywhere outside the chart & inspector -> Auto close crosshair!
     document.addEventListener('pointerdown', e => {
-      if (!inspectPoint) return;
+      if (!inspectItem) return;
       const inCanvas = canvas.contains(e.target);
       const inBar = document.getElementById('inspectorBar').contains(e.target);
-      if (!inCanvas && !inBar) {
-        clearInspect();
-      }
+      if (!inCanvas && !inBar) clearInspect();
     });
   }
 
-  function traceMonotoneSpline(ctx, coords) {
+  function traceSpline(ctx, coords) {
     if (coords.length < 2) return;
     ctx.moveTo(coords[0].x, coords[0].y);
     for (let i = 0; i < coords.length - 1; i++) {
-      const p0 = coords[i];
-      const p1 = coords[i + 1];
+      const p0 = coords[i], p1 = coords[i + 1];
       const mx = (p0.x + p1.x) / 2;
       ctx.bezierCurveTo(mx, p0.y, mx, p1.y, p1.x, p1.y);
     }
@@ -1199,23 +1533,84 @@
   }
 
   function drawChart() {
+    if (currentPane !== 'chart') return;
     const canvas = document.getElementById('solarCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, cssW, cssH);
 
     const isDark = document.body.classList.contains('dark');
-    const gridStroke = isDark ? 'rgba(148, 163, 184, 0.12)' : '#e2e8f0';
+    const gridStroke = isDark ? 'rgba(148, 163, 184, 0.13)' : '#e2e8f0';
     const labelColor = isDark ? '#94a3b8' : '#64748b';
-
-    const padL = 46, padR = 16, padT = 18, padB = 30;
+    const padL = 50, padR = 18, padT = 20, padB = 34;
     const plotW = Math.max(40, cssW - padL - padR);
     const plotH = Math.max(40, cssH - padT - padB);
 
-    const win = getWindowPoints();
-    const pts = win.pts;
+    const flt = getFilteredData();
 
-    // Calculate clean Y-axis max scale (minimum 800W, rounded to 250W or 500W)
+    // ========== CASE A: MULTI-DAY GROUPED BAR CHART (kWh / Day) ==========
+    if (flt.isMultiDay && multiChartStyle === 'bar') {
+      const days = flt.days;
+      if (!days || days.length === 0) return;
+
+      let maxKwh = 4;
+      for (const d of days) {
+        if (showPv && d.pv_kwh > maxKwh) maxKwh = d.pv_kwh;
+        if (showLoad && d.load_kwh > maxKwh) maxKwh = d.load_kwh;
+        if (showGrid && d.grid_kwh > maxKwh) maxKwh = d.grid_kwh;
+      }
+      const maxY = Math.ceil(maxKwh * 1.2);
+
+      ctx.font = '600 11px -apple-system, sans-serif';
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (plotH * i) / 4;
+        ctx.strokeStyle = gridStroke;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+        ctx.fillStyle = labelColor;
+        ctx.textAlign = 'right';
+        ctx.fillText(((maxY * (4 - i)) / 4).toFixed(1) + 'kWh', padL - 6, y + 4);
+      }
+
+      const slotW = plotW / days.length;
+      const activeKeys = [];
+      if (showPv) activeKeys.push({ k: 'pv_kwh', c: '#f59e0b' });
+      if (showLoad) activeKeys.push({ k: 'load_kwh', c: '#10b981' });
+      if (showGrid) activeKeys.push({ k: 'grid_kwh', c: '#ef4444' });
+
+      const groupW = Math.min(54, slotW * 0.72);
+      const barW = Math.max(4, (groupW - (activeKeys.length - 1) * 3) / Math.max(1, activeKeys.length));
+
+      days.forEach((d, idx) => {
+        const cx = padL + slotW * (idx + 0.5);
+
+        if (inspectItem && inspectItem.type === 'day' && inspectItem.date === d.date) {
+          ctx.fillStyle = isDark ? 'rgba(245, 158, 11, 0.10)' : 'rgba(245, 158, 11, 0.12)';
+          roundRect(ctx, padL + slotW * idx + 3, padT, slotW - 6, plotH, 8);
+          ctx.fill();
+        }
+
+        const startX = cx - groupW / 2;
+        activeKeys.forEach((s, bIdx) => {
+          const val = d[s.k] || 0;
+          const bh = Math.max(2, (val / maxY) * plotH);
+          const bx = startX + bIdx * (barW + 3);
+          const by = padT + plotH - bh;
+          ctx.fillStyle = s.c;
+          roundRect(ctx, bx, by, barW, bh, 4);
+          ctx.fill();
+        });
+
+        if (days.length <= 16 || idx % Math.ceil(days.length / 10) === 0) {
+          ctx.fillStyle = labelColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(d.label, cx, padT + plotH + 20);
+        }
+      });
+      return;
+    }
+
+    // ========== CASE B: SINGLE-DAY OR CONTINUOUS POWER CURVE (W) ==========
+    const pts = flt.pts;
     let peak = 750;
     for (let i = 0; i < pts.length; i++) {
       if (showPv && pts[i].pv > peak) peak = pts[i].pv;
@@ -1225,67 +1620,60 @@
     const step = peak > 1400 ? 500 : 250;
     const maxY = Math.ceil((peak * 1.15) / step) * step;
 
-    // 1. Horizontal Y-Axis Gridlines
-    ctx.lineWidth = 1;
-    ctx.font = '600 11px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.fillStyle = labelColor;
+    // Horizontal Y Gridlines
+    ctx.font = '600 11px -apple-system, sans-serif';
     for (let i = 0; i <= 4; i++) {
       const y = padT + (plotH * i) / 4;
       ctx.strokeStyle = gridStroke;
-      ctx.beginPath();
-      ctx.moveTo(padL, y);
-      ctx.lineTo(padL + plotW, y);
-      ctx.stroke();
-
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
       const wVal = Math.round(maxY * (1 - i / 4));
+      ctx.fillStyle = labelColor;
       ctx.textAlign = 'right';
       ctx.fillText(wVal >= 1000 ? (wVal / 1000).toFixed(wVal % 1000 === 0 ? 0 : 1) + 'kW' : wVal + 'W', padL - 6, y + 4);
     }
 
-    // 2. Clean X-Axis Time Gridlines
+    // Vertical X Time Ticks (Strictly bounded by From Time -> To Time!)
     ctx.textAlign = 'center';
-    if (win.isFixedDay) {
-      // Solarman-style fixed hour markers: 06:00, 08:00, 10:00, 12:00, 14:00, 16:00, 18:00
-      for (let h = 6; h <= 18; h += 2) {
-        const m = h * 60;
-        const x = padL + ((m - win.minM) / (win.maxM - win.minM)) * plotW;
+    if (!flt.isMultiDay) {
+      const spanMin = Math.max(10, flt.maxM - flt.minM);
+      const tickStep = spanMin <= 180 ? 30 : (spanMin <= 420 ? 60 : 120);
+      const firstTick = Math.ceil(flt.minM / tickStep) * tickStep;
+      for (let m = firstTick; m <= flt.maxM; m += tickStep) {
+        const x = padL + ((m - flt.minM) / spanMin) * plotW;
         ctx.strokeStyle = gridStroke;
-        ctx.beginPath();
-        ctx.moveTo(x, padT);
-        ctx.lineTo(x, padT + plotH);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, padT); ctx.lineTo(x, padT + plotH); ctx.stroke();
+        const hh = String(Math.floor(m / 60)).padStart(2, '0');
+        const mm = String(m % 60).padStart(2, '0');
         ctx.fillStyle = labelColor;
-        ctx.fillText(String(h).padStart(2, '0') + ':00', x, padT + plotH + 19);
+        ctx.fillText(`${hh}:${mm}`, x, padT + plotH + 20);
       }
     } else if (pts.length >= 2) {
-      const ticks = Math.min(5, pts.length);
+      const ticks = Math.min(6, pts.length);
       for (let t = 0; t < ticks; t++) {
         const idx = Math.round((t / (ticks - 1)) * (pts.length - 1));
-        const x = getPointX(pts[idx], idx, pts.length, win, padL, plotW);
+        const x = getPointX(pts[idx], idx, pts.length, flt, padL, plotW);
         ctx.fillStyle = labelColor;
-        ctx.fillText(pts[idx].t, x, padT + plotH + 19);
+        ctx.fillText(`${pts[idx].d.slice(8, 10)}/${pts[idx].d.slice(5, 7)} ${pts[idx].t}`, x, padT + plotH + 20);
       }
     }
 
     if (pts.length < 2) {
       ctx.fillStyle = labelColor;
-      ctx.font = '700 13px sans-serif';
-      ctx.fillText('Đang tải dữ liệu biểu đồ từ biến tần...', padL + plotW / 2, padT + plotH / 2);
+      ctx.font = '700 13.5px -apple-system, sans-serif';
+      ctx.fillText('Chưa có dữ liệu ghi nhận trong khoảng Từ ngày/giờ – Đến ngày/giờ này.', padL + plotW / 2, padT + plotH / 2);
       return;
     }
 
-    // 3. Draw Smooth Filled Curves
-    const renderedSeries = [];
-    function drawSeries(key, color, fillTop) {
+    const rendered = [];
+    function renderLine(key, color, fillTop) {
       const coords = pts.map((p, i) => ({
-        x: getPointX(p, i, pts.length, win, padL, plotW),
-        y: padT + plotH * (1 - Math.min(maxY, p[key]) / maxY),
-        raw: p
+        x: getPointX(p, i, pts.length, flt, padL, plotW),
+        y: padT + plotH * (1 - Math.min(maxY, p[key]) / maxY)
       }));
 
       ctx.save();
       ctx.beginPath();
-      traceMonotoneSpline(ctx, coords);
+      traceSpline(ctx, coords);
       ctx.lineTo(coords[coords.length - 1].x, padT + plotH);
       ctx.lineTo(coords[0].x, padT + plotH);
       ctx.closePath();
@@ -1298,65 +1686,55 @@
 
       ctx.save();
       ctx.beginPath();
-      traceMonotoneSpline(ctx, coords);
+      traceSpline(ctx, coords);
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.6;
       ctx.lineCap = 'round';
       ctx.stroke();
       ctx.restore();
 
-      // Live pulse dot at latest point
       const last = coords[coords.length - 1];
       ctx.beginPath();
       ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
       ctx.lineWidth = 1.8;
-      ctx.strokeStyle = isDark ? '#0f172a' : '#ffffff';
+      ctx.strokeStyle = isDark ? '#0f172a' : '#fff';
       ctx.stroke();
 
-      renderedSeries.push({ key, color, coords });
+      rendered.push({ key, color, coords });
     }
 
-    if (showGrid) drawSeries('grid', '#ef4444', 'rgba(239, 68, 68, 0.20)');
-    if (showLoad) drawSeries('load', '#10b981', 'rgba(16, 185, 129, 0.22)');
-    if (showPv)   drawSeries('pv',   '#f59e0b', 'rgba(245, 158, 11, 0.30)');
+    if (showGrid) renderLine('grid', '#ef4444', 'rgba(239, 68, 68, 0.20)');
+    if (showLoad) renderLine('load', '#10b981', 'rgba(16, 185, 129, 0.22)');
+    if (showPv)   renderLine('pv',   '#f59e0b', 'rgba(245, 158, 11, 0.30)');
 
-    // 4. Magnetic Crosshair + Clean Compact Floating Time Pill
-    if (inspectPoint) {
-      let matchIdx = -1;
-      for (let i = 0; i < pts.length; i++) {
-        if (pts[i].m === inspectPoint.m) { matchIdx = i; break; }
-      }
-      if (matchIdx >= 0) {
-        const cx = getPointX(pts[matchIdx], matchIdx, pts.length, win, padL, plotW);
+    // Crosshair & Floating Card
+    if (inspectItem && inspectItem.type === 'pt') {
+      const idx = inspectItem.idx;
+      if (idx >= 0 && idx < pts.length) {
+        const cx = getPointX(pts[idx], idx, pts.length, flt, padL, plotW);
 
-        // Vertical guide line
         ctx.save();
         ctx.strokeStyle = isDark ? 'rgba(248, 250, 252, 0.7)' : 'rgba(15, 23, 42, 0.55)';
         ctx.lineWidth = 1.5;
         ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(cx, padT);
-        ctx.lineTo(cx, padT + plotH);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, padT); ctx.lineTo(cx, padT + plotH); ctx.stroke();
         ctx.restore();
 
-        // Glowing dots on each active curve
-        for (const s of renderedSeries) {
-          const pt = s.coords[matchIdx];
+        for (const s of rendered) {
+          const pt = s.coords[idx];
           if (!pt) continue;
           ctx.beginPath();
           ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
           ctx.fillStyle = s.color;
           ctx.fill();
           ctx.lineWidth = 2.2;
-          ctx.strokeStyle = '#ffffff';
+          ctx.strokeStyle = '#fff';
           ctx.stroke();
         }
 
-        // Compact floating tooltip card at top of chart (smart left/right flip)
-        const cardW = 148, cardH = 74;
+        const cardW = 160, cardH = 76;
         let bx = cx + 12;
         if (bx + cardW > padL + plotW) bx = cx - cardW - 12;
         bx = Math.max(padL + 4, bx);
@@ -1365,7 +1743,7 @@
         ctx.save();
         ctx.shadowColor = 'rgba(0,0,0,0.18)';
         ctx.shadowBlur = 10;
-        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.93)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.94)' : 'rgba(255, 255, 255, 0.96)';
         roundRect(ctx, bx, by, cardW, cardH, 10);
         ctx.fill();
         ctx.lineWidth = 1.2;
@@ -1373,18 +1751,19 @@
         ctx.stroke();
         ctx.restore();
 
+        const dtLbl = flt.isMultiDay ? `${pts[idx].d.slice(8, 10)}/${pts[idx].d.slice(5, 7)} ` : '';
         ctx.textAlign = 'left';
         ctx.font = '800 11.5px -apple-system, sans-serif';
         ctx.fillStyle = isDark ? '#f8fafc' : '#0f172a';
-        ctx.fillText(`🕒 Lúc ${pts[matchIdx].t}`, bx + 9, by + 17);
+        ctx.fillText(`🕒 ${dtLbl}${pts[idx].t}`, bx + 9, by + 18);
 
         ctx.font = '700 11px -apple-system, sans-serif';
         ctx.fillStyle = '#d97706';
-        ctx.fillText(`☀️ Mặt trời: ${pts[matchIdx].pv} W`, bx + 9, by + 35);
+        ctx.fillText(`☀️ Mặt trời: ${pts[idx].pv} W`, bx + 9, by + 36);
         ctx.fillStyle = '#059669';
-        ctx.fillText(`🏠 Nhà dùng: ${pts[matchIdx].load} W`, bx + 9, by + 51);
+        ctx.fillText(`🏠 Nhà dùng: ${pts[idx].load} W`, bx + 9, by + 52);
         ctx.fillStyle = '#dc2626';
-        ctx.fillText(`🔌 Lưới EVN: ${pts[matchIdx].grid} W`, bx + 9, by + 67);
+        ctx.fillText(`🔌 Lưới EVN: ${pts[idx].grid} W`, bx + 9, by + 68);
       }
     }
   }
@@ -1432,23 +1811,24 @@
   }
 
   async function boot() {
-    loadLocalHistoryBackup();
+    const today = toLocalIsoDate(new Date());
+    document.getElementById('inpFromDate').value = today;
+    document.getElementById('inpToDate').value = today;
+
     try { applyTheme(localStorage.getItem('solar_web_theme') || 'light'); } catch (e) {}
-    resizeCanvas();
     if (window.ResizeObserver) {
-      new ResizeObserver(() => resizeCanvas()).observe(document.getElementById('canvasStage'));
+      new ResizeObserver(() => { resizeCanvas(); drawChart(); }).observe(document.getElementById('canvasStage'));
     } else {
-      window.addEventListener('resize', resizeCanvas);
+      window.addEventListener('resize', () => { resizeCanvas(); drawChart(); });
     }
     setupChartInteractions();
 
     await resolveApiBase();
     await loadSavedConfig();
-    await fetchServerHistory();
+    await applyFromToFilter(true);
     await pollLive();
 
     setInterval(pollLive, 2000);
-    setInterval(fetchServerHistory, 30000);
     setInterval(resolveApiBase, 60000);
   }
 
