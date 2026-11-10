@@ -22,6 +22,10 @@
     --solar-line: #f59e0b;
     --solar-bg: #fffbeb;
     --solar-bd: #fde68a;
+    --excess: #7c3aed;
+    --excess-line: #8b5cf6;
+    --excess-bg: #f5f3ff;
+    --excess-bd: #ddd6fe;
     --load: #059669;
     --load-line: #10b981;
     --load-bg: #ecfdf5;
@@ -45,6 +49,10 @@
     --solar-line: #f59e0b;
     --solar-bg: rgba(245, 158, 11, 0.12);
     --solar-bd: rgba(245, 158, 11, 0.32);
+    --excess: #c4b5fd;
+    --excess-line: #8b5cf6;
+    --excess-bg: rgba(139, 92, 246, 0.14);
+    --excess-bd: rgba(139, 92, 246, 0.38);
     --load: #34d399;
     --load-line: #10b981;
     --load-bg: rgba(16, 185, 129, 0.12);
@@ -193,21 +201,22 @@
   }
   .sec-meta { font-size: 12px; font-weight: 700; color: var(--muted); }
 
-  /* 3 KPI CARDS */
+  /* 4 KPI CARDS (2x2 spacious grid so every number is huge & clear!) */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
   .kpi-box {
     border-radius: 16px;
-    padding: 14px 11px;
+    padding: 13px 12px;
     border: 1.5px solid var(--border);
     display: flex; flex-direction: column; justify-content: space-between;
   }
-  .kpi-solar { background: var(--solar-bg); border-color: var(--solar-bd); }
-  .kpi-load  { background: var(--load-bg);  border-color: var(--load-bd); }
-  .kpi-gridc { background: var(--grid-bg);  border-color: var(--grid-bd); }
+  .kpi-solar  { background: var(--solar-bg);  border-color: var(--solar-bd); }
+  .kpi-excess { background: var(--excess-bg); border-color: var(--excess-bd); }
+  .kpi-load   { background: var(--load-bg);   border-color: var(--load-bd); }
+  .kpi-gridc  { background: var(--grid-bg);   border-color: var(--grid-bd); }
 
   .kpi-lbl { font-size: 11px; font-weight: 800; color: var(--text); opacity: 0.85; }
   .kpi-num { font-size: 28px; font-weight: 900; margin: 7px 0 5px 0; line-height: 1.05; letter-spacing: -0.5px; }
@@ -413,11 +422,11 @@
   /* Summary Totals for Selected From-To Period */
   .period-summary {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     margin-bottom: 12px;
   }
-  @media (max-width: 680px) {
+  @media (max-width: 860px) {
     .period-summary { grid-template-columns: repeat(2, 1fr); }
   }
   .ps-card {
@@ -489,7 +498,10 @@
   .inspector-bar.scrubbing .insp-btn.clear-btn { display: inline-block; }
 
   .series-pills {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  @media (max-width: 640px) {
+    .series-pills { grid-template-columns: repeat(2, 1fr); }
   }
   .s-pill {
     background: var(--card); border: 1.5px solid var(--border);
@@ -629,9 +641,9 @@
         <div class="kpi-grid">
           <div class="kpi-box kpi-solar">
             <div>
-              <div class="kpi-lbl">☀️ MẶT TRỜI</div>
+              <div class="kpi-lbl">☀️ MẶT TRỜI ĐANG PHÁT</div>
               <div class="kpi-num" style="color:var(--solar)"><span id="valPac">0</span> <span class="kpi-unit">W</span></div>
-              <div class="kpi-badge" id="tagExcess" style="color:var(--solar)">Đang đo...</div>
+              <div class="kpi-badge" id="tagSolarState" style="color:var(--solar)">Hòa lưới bám tải</div>
             </div>
             <div>
               <div class="kpi-foot">Nay: <b id="valEtoday">0.00</b> kWh</div>
@@ -639,9 +651,21 @@
             </div>
           </div>
 
+          <div class="kpi-box kpi-excess">
+            <div>
+              <div class="kpi-lbl">💜 ĐIỆN ĐANG DƯ TRÊN MÁI</div>
+              <div class="kpi-num" style="color:var(--excess)"><span id="valExcessW">0</span> <span class="kpi-unit">W</span></div>
+              <div class="kpi-badge" id="tagExcessHint" style="color:var(--excess)">Đang tính...</div>
+            </div>
+            <div>
+              <div class="kpi-foot">Dư bỏ phí nay: <b id="valExcessToday">0.00</b> kWh</div>
+              <div class="kpi-sub" id="lblRoofPotential">Đỉnh nắng mái: ~0 W</div>
+            </div>
+          </div>
+
           <div class="kpi-box kpi-load">
             <div>
-              <div class="kpi-lbl">🏠 NHÀ DÙNG</div>
+              <div class="kpi-lbl">🏠 NHÀ ĐANG DÙNG</div>
               <div class="kpi-num" style="color:var(--load)"><span id="valLoad">0</span> <span class="kpi-unit">W</span></div>
               <div class="kpi-badge" id="tagSelfPct" style="color:var(--load)">Tự chủ 0%</div>
             </div>
@@ -782,9 +806,14 @@
       <!-- CALCULATED SUMMARY TOTALS FOR SELECTED FROM-TO PERIOD -->
       <div class="period-summary">
         <div class="ps-card" style="border-color:var(--solar-bd)">
-          <div class="ps-lbl">☀️ Tổng Mặt Trời (Khoảng chọn)</div>
+          <div class="ps-lbl">☀️ Tổng Mặt Trời Phát</div>
           <div class="ps-val" style="color:var(--solar)" id="sumPvKwh">0.00 kWh</div>
           <div class="ps-sub" id="sumPeakW">Đỉnh phát: 0 W</div>
+        </div>
+        <div class="ps-card" style="border-color:var(--excess-bd)">
+          <div class="ps-lbl">💜 Tổng Điện Đang Dư</div>
+          <div class="ps-val" style="color:var(--excess)" id="sumExcessKwh">0.00 kWh</div>
+          <div class="ps-sub" id="sumPeakExcess">Đỉnh dư: 0 W</div>
         </div>
         <div class="ps-card" style="border-color:var(--load-bd)">
           <div class="ps-lbl">🏠 Tổng Điện Nhà Dùng</div>
@@ -815,7 +844,7 @@
       <!-- DEDICATED INSPECTOR READOUT HEADER -->
       <div class="inspector-bar" id="inspectorBar">
         <div class="insp-top">
-          <div class="insp-time" id="inspTitle">🟢 Chạm hoặc rê chuột trên biểu đồ để xem từng thời điểm</div>
+          <div class="insp-time" id="inspTitle">🟢 Chạm hoặc rê chuột trên biểu đồ để so sánh trực tiếp</div>
           <div class="insp-actions">
             <button class="insp-btn" id="btnDrillDay" style="background:var(--solar);color:#fff" onclick="drillSelectedDay()">🔍 Xem chi tiết ngày này</button>
             <button class="insp-btn clear-btn" onclick="clearInspect()">✕ Bỏ chọn</button>
@@ -823,15 +852,19 @@
         </div>
         <div class="series-pills">
           <div class="s-pill" id="pillPv" onclick="toggleLine('pv')" style="border-color:var(--solar-bd)">
-            <div class="s-pill-lbl"><span class="s-dot" style="background:#f59e0b"></span>Mặt trời (bấm ẩn/hiện)</div>
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#f59e0b"></span>Mặt trời phát</div>
             <div class="s-pill-val" style="color:var(--solar)" id="inspPv">0 W</div>
           </div>
+          <div class="s-pill" id="pillExcess" onclick="toggleLine('excess')" style="border-color:var(--excess-bd)">
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#8b5cf6"></span>Điện đang dư</div>
+            <div class="s-pill-val" style="color:var(--excess)" id="inspExcess">0 W</div>
+          </div>
           <div class="s-pill" id="pillLoad" onclick="toggleLine('load')" style="border-color:var(--load-bd)">
-            <div class="s-pill-lbl"><span class="s-dot" style="background:#10b981"></span>Nhà dùng (bấm ẩn/hiện)</div>
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#10b981"></span>Nhà đang dùng</div>
             <div class="s-pill-val" style="color:var(--load)" id="inspLoad">0 W</div>
           </div>
           <div class="s-pill" id="pillGrid" onclick="toggleLine('grid')" style="border-color:var(--grid-bd)">
-            <div class="s-pill-lbl"><span class="s-dot" style="background:#ef4444"></span>Lưới EVN (bấm ẩn/hiện)</div>
+            <div class="s-pill-lbl"><span class="s-dot" style="background:#ef4444"></span>Mua lưới EVN</div>
             <div class="s-pill-val" style="color:var(--grid)" id="inspGrid">0 W</div>
           </div>
         </div>
@@ -890,7 +923,7 @@
   let rawRangePoints = []; // [{ d: '2026-11-10', m: 480, t: '08:00', pv: 350, load: 290, grid: 0 }, ...]
   let rawRangeDays = [];   // [{ date: '2026-11-10', label: '10/11', pv_kwh: 1.2, load_kwh: 1.5, grid_kwh: 0.3, peak_pv: 850 }, ...]
   let multiChartStyle = 'bar'; // 'bar' (kWh/day) | 'line' (W continuous) when fromDate != toDate
-  let showPv = true, showLoad = true, showGrid = true;
+  let showPv = true, showExcess = true, showLoad = true, showGrid = true;
 
   // Crosshair Inspection
   let inspectItem = null; // Either a point { type:'pt', d, m, t, pv, load, grid } or day { type:'day', date, label, pv_kwh, load_kwh, grid_kwh, peak_pv }
@@ -1006,11 +1039,12 @@
     const decH = now.getHours() + now.getMinutes() / 60;
     let clearSkyW = 0;
     if (decH > 6 && decH < 18) {
-      clearSkyW = Math.round(1540 * Math.pow(Math.max(0, Math.sin(Math.PI * (decH - 6) / 12)), 1.15));
+      clearSkyW = Math.round(1460 * Math.pow(Math.max(0, Math.sin(Math.PI * (decH - 6) / 12)), 1.15));
     }
-    let potentialW = pac, excessW = 0;
-    if (ctw <= 35 && vpv >= 121 && clearSkyW > pac) {
-      const vf = Math.min(1.05, Math.max(0.35, (vpv - 115.5) / 14.5));
+    let potentialW = d.potential_w !== undefined ? Math.round(d.potential_w) : pac;
+    let excessW = d.excess_w !== undefined ? Math.round(d.excess_w) : 0;
+    if (d.excess_w === undefined && ctw <= 40 && vpv >= 119.5 && clearSkyW > pac) {
+      const vf = Math.min(1.04, Math.max(0.35, (vpv - 115.0) / 14.5));
       potentialW = Math.max(pac, Math.round(clearSkyW * vf));
       excessW = Math.max(0, potentialW - pac);
     }
@@ -1019,17 +1053,28 @@
     const gridPct = 100 - selfPct;
 
     document.getElementById('valPac').innerText = pac.toLocaleString('vi-VN');
+    document.getElementById('valExcessW').innerText = excessW.toLocaleString('vi-VN');
     document.getElementById('valLoad').innerText = load.toLocaleString('vi-VN');
     document.getElementById('valCtAbs').innerText = Math.abs(ctw).toLocaleString('vi-VN');
 
-    const tagEx = document.getElementById('tagExcess');
-    if (excessW > 25) {
-      tagEx.innerText = `Còn dư ~${excessW}W`;
-      tagEx.style.color = 'var(--load)';
+    const tagSolar = document.getElementById('tagSolarState');
+    tagSolar.innerText = vpv > 80 ? (excessW > 30 ? 'Đang bóp bám tải' : 'Bung 100% nắng') : 'Nghỉ ban đêm';
+
+    const tagExHint = document.getElementById('tagExcessHint');
+    if (excessW >= 650) {
+      tagExHint.innerText = '❄️ Dư bật máy lạnh!';
+      tagExHint.style.color = 'var(--excess)';
+    } else if (excessW >= 120) {
+      tagExHint.innerText = '💡 Dư bật quạt/sạc';
+      tagExHint.style.color = 'var(--excess)';
     } else {
-      tagEx.innerText = vpv > 80 ? 'Bung 100% nắng' : 'Nghỉ ban đêm';
-      tagEx.style.color = 'var(--solar)';
+      tagExHint.innerText = vpv > 80 ? 'Đã dùng sạch nắng' : 'Chờ nắng lên';
+      tagExHint.style.color = 'var(--muted)';
     }
+    if (d.excess_today_kwh !== undefined) {
+      document.getElementById('valExcessToday').innerText = Number(d.excess_today_kwh).toFixed(2);
+    }
+    document.getElementById('lblRoofPotential').innerText = `Đỉnh nắng mái: ~${potentialW} W`;
 
     document.getElementById('valEtoday').innerText = etoday.toFixed(2);
     document.getElementById('valEtotal').innerText = etotal.toFixed(1);
@@ -1100,7 +1145,7 @@
     if ((d.status === 'online' || d.status === 'demo') && toVal === todayIso) {
       const curM = now.getHours() * 60 + now.getMinutes();
       const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-      const pt = { d: todayIso, m: curM, t: hhmm, pv: pac, load: load, grid: gridIn };
+      const pt = { d: todayIso, m: curM, t: hhmm, pv: pac, excess: excessW, load: load, grid: gridIn };
       if (rawRangePoints.length === 0) {
         rawRangePoints.push(pt);
       } else {
@@ -1246,39 +1291,49 @@
 
   function recomputePeriodSummary() {
     const { pts, days, isMultiDay } = getFilteredData();
-    let pvKwh = 0, ldKwh = 0, gdKwh = 0, peakW = 0;
+    let pvKwh = 0, exKwh = 0, ldKwh = 0, gdKwh = 0, peakW = 0, peakExW = 0;
 
     if (isMultiDay && days.length > 0) {
       for (const dy of days) {
         pvKwh += dy.pv_kwh || 0;
+        exKwh += dy.excess_kwh || 0;
         ldKwh += dy.load_kwh || 0;
         gdKwh += dy.grid_kwh || 0;
         if ((dy.peak_pv || 0) > peakW) peakW = dy.peak_pv;
       }
+      for (const p of pts) {
+        if ((p.excess || 0) > peakExW) peakExW = p.excess;
+      }
     } else if (pts.length >= 2) {
-      let pvWh = 0, ldWh = 0, gdWh = 0;
+      let pvWh = 0, exWh = 0, ldWh = 0, gdWh = 0;
       for (let i = 0; i < pts.length; i++) {
         if (pts[i].pv > peakW) peakW = pts[i].pv;
+        if ((pts[i].excess || 0) > peakExW) peakExW = pts[i].excess;
         if (i > 0 && pts[i].d === pts[i - 1].d) {
           const dm = Math.max(0, Math.min(15, pts[i].m - pts[i - 1].m));
           const dh = dm / 60;
           pvWh += ((pts[i].pv + pts[i - 1].pv) * 0.5) * dh;
+          exWh += (((pts[i].excess || 0) + (pts[i - 1].excess || 0)) * 0.5) * dh;
           ldWh += ((pts[i].load + pts[i - 1].load) * 0.5) * dh;
           gdWh += ((pts[i].grid + pts[i - 1].grid) * 0.5) * dh;
         }
       }
       pvKwh = pvWh / 1000;
+      exKwh = exWh / 1000;
       ldKwh = ldWh / 1000;
       gdKwh = gdWh / 1000;
     } else if (pts.length === 1) {
       peakW = pts[0].pv;
+      peakExW = pts[0].excess || 0;
     }
 
     const selfRatio = ldKwh > 0.01 ? Math.min(100, Math.round(((ldKwh - gdKwh) / ldKwh) * 100)) : (pvKwh > 0 ? 100 : 0);
     const money = Math.round(pvKwh * 3732.48);
 
     document.getElementById('sumPvKwh').innerText = `${pvKwh.toFixed(2)} kWh`;
-    document.getElementById('sumPeakW').innerText = `Đỉnh công suất: ${peakW} W`;
+    document.getElementById('sumPeakW').innerText = `Đỉnh phát: ${peakW} W`;
+    document.getElementById('sumExcessKwh').innerText = `${exKwh.toFixed(2)} kWh`;
+    document.getElementById('sumPeakExcess').innerText = `Đỉnh dư: ${peakExW} W`;
     document.getElementById('sumLoadKwh').innerText = `${ldKwh.toFixed(2)} kWh`;
     document.getElementById('sumSelfRatio').innerText = `Tự chủ: ${Math.max(0, selfRatio)}%`;
     document.getElementById('sumGridKwh').innerText = `${gdKwh.toFixed(2)} kWh`;
@@ -1308,6 +1363,9 @@
     if (which === 'pv') {
       showPv = !showPv;
       document.getElementById('pillPv').classList.toggle('off', !showPv);
+    } else if (which === 'excess') {
+      showExcess = !showExcess;
+      document.getElementById('pillExcess').classList.toggle('off', !showExcess);
     } else if (which === 'load') {
       showLoad = !showLoad;
       document.getElementById('pillLoad').classList.toggle('off', !showLoad);
@@ -1328,15 +1386,17 @@
       if (inspectItem.type === 'day') {
         document.getElementById('inspTitle').innerHTML =
           `📅 Ngày <b>${formatVnDate(inspectItem.date)}</b> (Đỉnh: ${inspectItem.peak_pv} W)`;
-        document.getElementById('inspPv').innerText = `${inspectItem.pv_kwh.toFixed(2)} kWh`;
-        document.getElementById('inspLoad').innerText = `${inspectItem.load_kwh.toFixed(2)} kWh`;
-        document.getElementById('inspGrid').innerText = `${inspectItem.grid_kwh.toFixed(2)} kWh`;
+        document.getElementById('inspPv').innerText = `${(inspectItem.pv_kwh || 0).toFixed(2)} kWh`;
+        document.getElementById('inspExcess').innerText = `${(inspectItem.excess_kwh || 0).toFixed(2)} kWh`;
+        document.getElementById('inspLoad').innerText = `${(inspectItem.load_kwh || 0).toFixed(2)} kWh`;
+        document.getElementById('inspGrid').innerText = `${(inspectItem.grid_kwh || 0).toFixed(2)} kWh`;
         drillBtn.style.display = 'inline-block';
       } else {
         const dtTag = inspectItem.showDate ? `${inspectItem.d.slice(8, 10)}/${inspectItem.d.slice(5, 7)} ` : '';
         document.getElementById('inspTitle').innerHTML =
           `📍 Đang dò lúc <b>${dtTag}${inspectItem.t}</b> ${inspectPinned ? '(Đã ghim)' : ''}`;
         document.getElementById('inspPv').innerText = `${inspectItem.pv} W`;
+        document.getElementById('inspExcess').innerText = `${inspectItem.excess || 0} W`;
         document.getElementById('inspLoad').innerText = `${inspectItem.load} W`;
         document.getElementById('inspGrid').innerText = `${inspectItem.grid} W`;
       }
@@ -1344,19 +1404,22 @@
       bar.classList.remove('scrubbing');
       const { pts, isMultiDay } = getFilteredData();
       if (isMultiDay && multiChartStyle === 'bar') {
-        document.getElementById('inspTitle').innerHTML = `📊 Chạm vào cột ngày bất kỳ để xem chi tiết kWh`;
+        document.getElementById('inspTitle').innerHTML = `📊 Chạm vào cột ngày bất kỳ để so sánh chi tiết kWh`;
         document.getElementById('inspPv').innerText = document.getElementById('sumPvKwh').innerText;
+        document.getElementById('inspExcess').innerText = document.getElementById('sumExcessKwh').innerText;
         document.getElementById('inspLoad').innerText = document.getElementById('sumLoadKwh').innerText;
         document.getElementById('inspGrid').innerText = document.getElementById('sumGridKwh').innerText;
       } else if (pts.length > 0) {
         const last = pts[pts.length - 1];
-        document.getElementById('inspTitle').innerHTML = `🟢 Điểm cuối trong khoảng chọn (<b>${last.t}</b>)`;
+        document.getElementById('inspTitle').innerHTML = `🟢 Điểm cuối trong khoảng chọn (<b>${last.t}</b>) • Chạm/lướt để so sánh`;
         document.getElementById('inspPv').innerText = `${last.pv} W`;
+        document.getElementById('inspExcess').innerText = `${last.excess || 0} W`;
         document.getElementById('inspLoad').innerText = `${last.load} W`;
         document.getElementById('inspGrid').innerText = `${last.grid} W`;
       } else {
         document.getElementById('inspTitle').innerHTML = `⚠️ Chưa có bản ghi trong khung giờ này`;
         document.getElementById('inspPv').innerText = `0 W`;
+        document.getElementById('inspExcess').innerText = `0 W`;
         document.getElementById('inspLoad').innerText = `0 W`;
         document.getElementById('inspGrid').innerText = `0 W`;
       }
@@ -1555,9 +1618,10 @@
 
       let maxKwh = 4;
       for (const d of days) {
-        if (showPv && d.pv_kwh > maxKwh) maxKwh = d.pv_kwh;
-        if (showLoad && d.load_kwh > maxKwh) maxKwh = d.load_kwh;
-        if (showGrid && d.grid_kwh > maxKwh) maxKwh = d.grid_kwh;
+        if (showPv && (d.pv_kwh || 0) > maxKwh) maxKwh = d.pv_kwh;
+        if (showExcess && (d.excess_kwh || 0) > maxKwh) maxKwh = d.excess_kwh;
+        if (showLoad && (d.load_kwh || 0) > maxKwh) maxKwh = d.load_kwh;
+        if (showGrid && (d.grid_kwh || 0) > maxKwh) maxKwh = d.grid_kwh;
       }
       const maxY = Math.ceil(maxKwh * 1.2);
 
@@ -1573,11 +1637,12 @@
 
       const slotW = plotW / days.length;
       const activeKeys = [];
-      if (showPv) activeKeys.push({ k: 'pv_kwh', c: '#f59e0b' });
-      if (showLoad) activeKeys.push({ k: 'load_kwh', c: '#10b981' });
-      if (showGrid) activeKeys.push({ k: 'grid_kwh', c: '#ef4444' });
+      if (showPv)     activeKeys.push({ k: 'pv_kwh',     c: '#f59e0b' });
+      if (showExcess) activeKeys.push({ k: 'excess_kwh', c: '#8b5cf6' });
+      if (showLoad)   activeKeys.push({ k: 'load_kwh',   c: '#10b981' });
+      if (showGrid)   activeKeys.push({ k: 'grid_kwh',   c: '#ef4444' });
 
-      const groupW = Math.min(54, slotW * 0.72);
+      const groupW = Math.min(64, slotW * 0.78);
       const barW = Math.max(4, (groupW - (activeKeys.length - 1) * 3) / Math.max(1, activeKeys.length));
 
       days.forEach((d, idx) => {
@@ -1614,6 +1679,7 @@
     let peak = 750;
     for (let i = 0; i < pts.length; i++) {
       if (showPv && pts[i].pv > peak) peak = pts[i].pv;
+      if (showExcess && (pts[i].excess || 0) > peak) peak = pts[i].excess;
       if (showLoad && pts[i].load > peak) peak = pts[i].load;
       if (showGrid && pts[i].grid > peak) peak = pts[i].grid;
     }
@@ -1705,9 +1771,10 @@
       rendered.push({ key, color, coords });
     }
 
-    if (showGrid) renderLine('grid', '#ef4444', 'rgba(239, 68, 68, 0.20)');
-    if (showLoad) renderLine('load', '#10b981', 'rgba(16, 185, 129, 0.22)');
-    if (showPv)   renderLine('pv',   '#f59e0b', 'rgba(245, 158, 11, 0.30)');
+    if (showGrid)   renderLine('grid',   '#ef4444', 'rgba(239, 68, 68, 0.20)');
+    if (showExcess) renderLine('excess', '#8b5cf6', 'rgba(139, 92, 246, 0.24)');
+    if (showLoad)   renderLine('load',   '#10b981', 'rgba(16, 185, 129, 0.22)');
+    if (showPv)     renderLine('pv',     '#f59e0b', 'rgba(245, 158, 11, 0.30)');
 
     // Crosshair & Floating Card
     if (inspectItem && inspectItem.type === 'pt') {
@@ -1734,7 +1801,7 @@
           ctx.stroke();
         }
 
-        const cardW = 160, cardH = 76;
+        const cardW = 166, cardH = 92;
         let bx = cx + 12;
         if (bx + cardW > padL + plotW) bx = cx - cardW - 12;
         bx = Math.max(padL + 4, bx);
@@ -1747,7 +1814,7 @@
         roundRect(ctx, bx, by, cardW, cardH, 10);
         ctx.fill();
         ctx.lineWidth = 1.2;
-        ctx.strokeStyle = '#f59e0b';
+        ctx.strokeStyle = '#8b5cf6';
         ctx.stroke();
         ctx.restore();
 
@@ -1759,11 +1826,13 @@
 
         ctx.font = '700 11px -apple-system, sans-serif';
         ctx.fillStyle = '#d97706';
-        ctx.fillText(`☀️ Mặt trời: ${pts[idx].pv} W`, bx + 9, by + 36);
+        ctx.fillText(`☀️ Mặt trời: ${pts[idx].pv} W`, bx + 9, by + 35);
+        ctx.fillStyle = '#7c3aed';
+        ctx.fillText(`💜 Điện dư:  ${pts[idx].excess || 0} W`, bx + 9, by + 51);
         ctx.fillStyle = '#059669';
-        ctx.fillText(`🏠 Nhà dùng: ${pts[idx].load} W`, bx + 9, by + 52);
+        ctx.fillText(`🏠 Nhà dùng: ${pts[idx].load} W`, bx + 9, by + 67);
         ctx.fillStyle = '#dc2626';
-        ctx.fillText(`🔌 Lưới EVN: ${pts[idx].grid} W`, bx + 9, by + 68);
+        ctx.fillText(`🔌 Lưới EVN: ${pts[idx].grid} W`, bx + 9, by + 83);
       }
     }
   }
