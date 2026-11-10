@@ -116,6 +116,21 @@ def s32(high, low):
     val = ((high & 0xFFFF) << 16) | (low & 0xFFFF)
     return val - 0x100000000 if val >= 0x80000000 else val
 
+def calc_clear_sky_w(minute_of_day: int) -> int:
+    h = minute_of_day / 60.0
+    if h <= 6.0 or h >= 18.0:
+        return 0
+    s = math.sin(math.pi * (h - 6.0) / 12.0)
+    return int(round(1460 * (max(0.0, s) ** 1.15)))
+
+def estimate_excess_solar(pac_w: int, ct_w: int, vpv_v: float, minute_of_day: int):
+    clear_w = calc_clear_sky_w(minute_of_day)
+    if ct_w <= 40 and vpv_v >= 119.5 and clear_w > pac_w:
+        vf = min(1.04, max(0.35, (vpv_v - 115.0) / 14.5))
+        pot_w = max(int(pac_w), int(round(clear_w * vf)))
+        return max(0, pot_w - int(pac_w)), pot_w
+    return 0, int(pac_w)
+
 def poll_invt_live(cfg):
     if cfg.get("demo_mode"):
         pv_w = int(780 + random.randint(-30, 30))
@@ -200,6 +215,10 @@ def poll_invt_live(cfg):
                     import_today = round(regs2[7] * 0.1, 2)
                     import_total = round(((regs2[8] << 16) | regs2[9]) * 0.01, 1)
 
+                now_lt = time.localtime()
+                cur_m = now_lt.tm_hour * 60 + now_lt.tm_min
+                excess_w, potential_w = estimate_excess_solar(int(pac), int(ct_w), float(vpv), cur_m)
+
                 return {
                     "ok": True,
                     "status": "online",
@@ -208,6 +227,8 @@ def poll_invt_live(cfg):
                     "timestamp": time.strftime("%H:%M:%S"),
                     "pac_w": int(pac),
                     "pdc_w": pdc,
+                    "excess_w": int(excess_w),
+                    "potential_w": int(potential_w),
                     "load_w": load_w,
                     "ct_w": int(ct_w),
                     "vpv_v": vpv,
@@ -226,7 +247,7 @@ def poll_invt_live(cfg):
                     "export_today_kwh": export_today,
                     "export_total_kwh": export_total,
                     "derating_mode": derating_mode,
-                    "msg": f"✅ LIVE 2s ({target_host}:8899) | PV: {int(pac)}W | Tải: {load_w}W | EVN: {int(ct_w)}W"
+                    "msg": f"✅ LIVE 2s ({target_host}:8899) | PV: {int(pac)}W | Dư: {int(excess_w)}W | Tải: {load_w}W | EVN: {int(ct_w)}W"
                 }
         except Exception as e:
             last_err = str(e)
@@ -346,10 +367,23 @@ def _ensure_yesterday_seeded():
     except Exception:
         pass
 
+def _enrich_point_excess(pt):
+    if "excess" in pt and pt["excess"] is not None:
+        return pt
+    m = int(pt.get("m", 0))
+    pv = int(pt.get("pv", 0))
+    gd = int(pt.get("grid", 0))
+    ex = 0
+    if gd <= 15 and 375 < m < 1050:
+        pot = int(round(calc_clear_sky_w(m) * 0.88))
+        ex = max(0, pot - pv)
+    return dict(pt, excess=ex)
+
 def _compute_day_kwh(pts):
     if not pts or len(pts) < 2:
-        return {"pv_kwh": 0.0, "load_kwh": 0.0, "grid_kwh": 0.0, "peak_pv": pts[0]["pv"] if pts else 0}
+        return {"pv_kwh": 0.0, "excess_kwh": 0.0, "load_kwh": 0.0, "grid_kwh": 0.0, "peak_pv": pts[0]["pv"] if pts else 0}
     pv_wh = 0.0
+    ex_wh = 0.0
     ld_wh = 0.0
     gd_wh = 0.0
     peak_pv = 0
@@ -360,10 +394,12 @@ def _compute_day_kwh(pts):
             dm = max(0, min(15, pts[i]["m"] - pts[i - 1]["m"]))
             dh = dm / 60.0
             pv_wh += ((pts[i]["pv"] + pts[i - 1]["pv"]) * 0.5) * dh
+            ex_wh += ((pts[i].get("excess", 0) + pts[i - 1].get("excess", 0)) * 0.5) * dh
             ld_wh += ((pts[i]["load"] + pts[i - 1]["load"]) * 0.5) * dh
             gd_wh += ((pts[i]["grid"] + pts[i - 1]["grid"]) * 0.5) * dh
     return {
         "pv_kwh": round(pv_wh / 1000.0, 2),
+        "excess_kwh": round(ex_wh / 1000.0, 2),
         "load_kwh": round(ld_wh / 1000.0, 2),
         "grid_kwh": round(gd_wh / 1000.0, 2),
         "peak_pv": int(peak_pv)
@@ -392,7 +428,7 @@ def _query_history_range(from_str, to_str):
         ds = cur.strftime("%Y-%m-%d")
         day_pts = []
         if ds == today_str:
-            day_pts = [dict(p, d=ds) for p in _day_history]
+            day_pts = [_enrich_point_excess(dict(p, d=ds)) for p in _day_history]
         else:
             fp = _history_path(ds)
             if os.path.exists(fp):
@@ -400,7 +436,7 @@ def _query_history_range(from_str, to_str):
                     with open(fp, "r", encoding="utf-8") as f:
                         raw_pts = json.load(f)
                         if isinstance(raw_pts, list):
-                            day_pts = [dict(p, d=ds) for p in raw_pts]
+                            day_pts = [_enrich_point_excess(dict(p, d=ds)) for p in raw_pts]
                 except Exception:
                     pass
         stats = _compute_day_kwh(day_pts)
@@ -413,7 +449,6 @@ def _query_history_range(from_str, to_str):
         all_points.extend(day_pts)
         cur += datetime.timedelta(days=1)
 
-    # Also list available recorded dates on disk
     avail = sorted([
         fn[4:-5] for fn in os.listdir(HISTORY_DIR)
         if fn.startswith("day_") and fn.endswith(".json")
@@ -435,8 +470,6 @@ def _bg_poll_loop():
             cfg = load_config()
             data = poll_invt_live(cfg)
             with _state_lock:
-                if data.get("ok") or _latest_live.get("status") == "offline":
-                    _latest_live = data
                 if data.get("status") in ("online", "demo"):
                     _load_or_init_today_history(data)
                     now_lt = time.localtime()
@@ -446,6 +479,7 @@ def _bg_poll_loop():
                         "m": cur_m,
                         "t": hhmm,
                         "pv": int(data.get("pac_w", 0)),
+                        "excess": int(data.get("excess_w", 0)),
                         "load": int(data.get("load_w", 0)),
                         "grid": max(0, int(data.get("ct_w", 0)))
                     }
@@ -458,6 +492,10 @@ def _bg_poll_loop():
                         if time.time() - last_save_ts > 30:
                             _save_today_history()
                             last_save_ts = time.time()
+                    enriched_today = [_enrich_point_excess(x) for x in _day_history]
+                    data["excess_today_kwh"] = _compute_day_kwh(enriched_today)["excess_kwh"]
+                if data.get("ok") or _latest_live.get("status") == "offline":
+                    _latest_live = data
         except Exception:
             pass
         elapsed = time.time() - t0
