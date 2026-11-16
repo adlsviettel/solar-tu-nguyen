@@ -2,6 +2,9 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -700,12 +703,87 @@
   let apiBase = '';
   let resolvingBase = false;
   let historyLoaded = false;
+  let serverHistoryMissing = false;
   let pollFailCount = 0;
   let lastResolveTs = 0;
   let chartInst = null;
   let rangePoints = [];
   let rangeDays = [];
   let vis = { pv: true, excess: true, load: true, grid: true };
+
+  function localHistKey(ds) {
+    return 'solar_local_hist_' + ds;
+  }
+
+  function loadLocalRange(fDate, tDate) {
+    const out = [];
+    try {
+      const cur = new Date(fDate + 'T00:00:00');
+      const end = new Date(tDate + 'T00:00:00');
+      let guard = 0;
+      while (cur <= end && guard < 62) {
+        const ds = toIsoDate(cur);
+        const raw = localStorage.getItem(localHistKey(ds));
+        if (raw) {
+          const pts = JSON.parse(raw);
+          if (Array.isArray(pts)) out.push(...pts);
+        }
+        cur.setDate(cur.getDate() + 1);
+        guard++;
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function recordLocalPoint(pac, excessW, load, gridIn) {
+    try {
+      const now = new Date();
+      const ds = toIsoDate(now);
+      const bucketSec = now.getHours() * 3600 + now.getMinutes() * 60 + Math.floor(now.getSeconds() / 15) * 15;
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(Math.floor(now.getSeconds() / 15) * 15).padStart(2, '0');
+      const tStr = `${hh}:${mm}:${ss}`;
+      const pt = {
+        d: ds,
+        s: bucketSec,
+        m: Math.floor(bucketSec / 60),
+        t: tStr,
+        ts: `${ds}T${tStr}`,
+        pv: pac,
+        excess: excessW,
+        load: load,
+        grid: gridIn
+      };
+      let list = [];
+      const raw = localStorage.getItem(localHistKey(ds));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) list = parsed;
+      }
+      let addedNewBucket = false;
+      if (!list.length || bucketSec > (list[list.length - 1].s || 0)) {
+        list.push(pt);
+        if (list.length > 5800) list = list.slice(-5800);
+        addedNewBucket = true;
+      } else {
+        list[list.length - 1] = pt;
+      }
+      localStorage.setItem(localHistKey(ds), JSON.stringify(list));
+
+      if (serverHistoryMissing && addedNewBucket) {
+        const tDate = document.getElementById('inpToDate').value || ds;
+        if (tDate >= ds) {
+          if (!rangePoints.length || rangePoints[rangePoints.length - 1].d !== ds || bucketSec > (rangePoints[rangePoints.length - 1].s || 0)) {
+            rangePoints.push(pt);
+          } else {
+            rangePoints[rangePoints.length - 1] = pt;
+          }
+          renderEChart();
+        }
+      }
+    } catch (e) {}
+  }
 
   function toIsoDate(dt) {
     return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
@@ -814,7 +892,10 @@
   function updateLiveUI(d) {
     const stTxt = document.getElementById('statusText');
     const dot = document.getElementById('statusDot');
-    const tsTag = d.timestamp ? (' • ' + d.timestamp) : '';
+    const vnClock = (d.tz === 'Asia/Ho_Chi_Minh' && d.timestamp)
+      ? d.timestamp
+      : new Date().toLocaleTimeString('vi-VN', { hour12: false });
+    const tsTag = vnClock ? (' • ' + vnClock) : '';
     if (d.status === 'online') {
       stTxt.innerText = 'ONLINE 2s' + tsTag;
       dot.style.background = '#10b981';
@@ -918,6 +999,10 @@
     document.getElementById('legExcess').innerText = `${excessW} W`;
     document.getElementById('legLoad').innerText = `${load} W`;
     document.getElementById('legGrid').innerText = `${gridIn} W`;
+
+    if (d.status === 'online' || d.status === 'demo') {
+      recordLocalPoint(pac, excessW, load, gridIn);
+    }
 
     // Flow Diagram
     document.getElementById('fVpv').innerText = vpv.toFixed(1);
@@ -1044,6 +1129,7 @@
 
     if (fetchRemote) {
       if (location.hostname.endsWith('github.io') && !apiBase) {
+        rangePoints = loadLocalRange(fDate, tDate);
         renderEChart();
         return;
       }
@@ -1053,9 +1139,17 @@
           const j = await r.json();
           rangePoints = Array.isArray(j.points) ? j.points : [];
           rangeDays = Array.isArray(j.days) ? j.days : [];
+          serverHistoryMissing = false;
+          historyLoaded = true;
+        } else {
+          serverHistoryMissing = true;
+          rangePoints = loadLocalRange(fDate, tDate);
           historyLoaded = true;
         }
-      } catch (e) {}
+      } catch (e) {
+        serverHistoryMissing = true;
+        rangePoints = loadLocalRange(fDate, tDate);
+      }
     }
     renderEChart();
   }
@@ -1118,9 +1212,10 @@
     document.getElementById('sumLoadTxt').innerText = `Khoảng chọn: ${(ldWh / 1000).toFixed(2)} kWh`;
     document.getElementById('sumGridTxt').innerText = `Khoảng chọn: ${(gdWh / 1000).toFixed(2)} kWh`;
 
+    const suffixMode = serverHistoryMissing ? ' • đang ghi trực tiếp' : '';
     document.getElementById('chartScaleInfo').innerText = isMultiDay
-      ? `${vnDate(fDate)} → ${vnDate(tDate)} (${filtered.length} mẫu thật)`
-      : `${vnDate(fDate)} (${fTime}–${tTime} • ${filtered.length} mẫu thật)`;
+      ? `${vnDate(fDate)} → ${vnDate(tDate)} (${filtered.length} mẫu thật${suffixMode})`
+      : `${vnDate(fDate)} (${fTime}–${tTime} • ${filtered.length} mẫu thật${suffixMode})`;
 
     // Build genuine timestamp series [timestamp_ms, value] (Insert null across gaps > 10 mins so NO fake connecting lines!)
     function buildTimePairs(field) {
