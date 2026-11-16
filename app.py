@@ -8,12 +8,21 @@ import math
 import datetime
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+import urllib.request
+import urllib.error
+import base64
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 HISTORY_DIR = os.path.join(BASE_DIR, "history")
 LOCAL_HTML_PATH = os.path.join(BASE_DIR, "index.html")
+VN_TZ = datetime.timezone(datetime.timedelta(hours=7))
+IS_CLOUD = bool(os.environ.get("RENDER") or os.environ.get("CLOUD_ENV"))
+
+def vn_now() -> datetime.datetime:
+    """Always returns current Vietnam local time (UTC+7), independent of server OS timezone."""
+    return datetime.datetime.now(VN_TZ)
 
 os.makedirs(HISTORY_DIR, exist_ok=True)
 
@@ -168,6 +177,8 @@ def estimate_real_excess_solar(pac_w: int, ct_w: int, vpv_v: float, temp_c: floa
     return real_export_w, int(pac_w) + real_export_w
 
 def poll_invt_live(cfg):
+    now_dt = vn_now()
+    now_hms = now_dt.strftime("%H:%M:%S")
     if cfg.get("demo_mode"):
         pv_w = int(780 + random.randint(-30, 30))
         ct_w = int(150 + random.randint(-20, 20))
@@ -183,7 +194,7 @@ def poll_invt_live(cfg):
             "status": "demo",
             "mode": "DEMO 2s",
             "host_used": "DEMO",
-            "timestamp": time.strftime("%H:%M:%S"),
+            "timestamp": now_hms,
             "pac_w": pv_w,
             "pdc_w": pv_w,
             "excess_w": 0,
@@ -210,12 +221,16 @@ def poll_invt_live(cfg):
         }
 
     primary_host = cfg.get("host", DEFAULT_WAN_IP).strip() or DEFAULT_WAN_IP
-    alt_host = DEFAULT_LAN_IP if primary_host != DEFAULT_LAN_IP else DEFAULT_WAN_IP
+    hosts = [primary_host]
+    if not IS_CLOUD:
+        alt_host = DEFAULT_LAN_IP if primary_host != DEFAULT_LAN_IP else DEFAULT_WAN_IP
+        if alt_host not in hosts:
+            hosts.append(alt_host)
     port = int(cfg.get("port", 8899))
     sn = int(cfg.get("logger_sn", DEFAULT_SN))
 
     last_err = ""
-    for target_host in [primary_host, alt_host]:
+    for target_host in hosts:
         try:
             regs, regs2 = query_invt_all(target_host, port, sn, timeout=2.2)
             if regs and len(regs) >= 50:
@@ -252,8 +267,8 @@ def poll_invt_live(cfg):
                     import_today = round(regs2[7] * 0.1, 2)
                     import_total = round(((regs2[8] << 16) | regs2[9]) * 0.01, 1)
 
-                now_lt = time.localtime()
-                cur_m = now_lt.tm_hour * 60 + now_lt.tm_min
+                now_lt = vn_now()
+                cur_m = now_lt.hour * 60 + now_lt.minute
                 excess_w, potential_w = estimate_real_excess_solar(int(pac), int(ct_w), float(vpv), float(temp), cur_m)
 
                 return {
@@ -261,7 +276,7 @@ def poll_invt_live(cfg):
                     "status": "online",
                     "mode": f"ONLINE 2s ({target_host})",
                     "host_used": target_host,
-                    "timestamp": time.strftime("%H:%M:%S"),
+                    "timestamp": now_lt.strftime("%H:%M:%S"),
                     "pac_w": int(pac),
                     "pdc_w": pdc,
                     "excess_w": int(excess_w),
@@ -292,15 +307,121 @@ def poll_invt_live(cfg):
     return {
         "ok": False,
         "status": "offline",
-        "timestamp": time.strftime("%H:%M:%S"),
-        "msg": f"Không thể kết nối tới {primary_host}:{port} hoặc {alt_host}:{port} ({last_err})"
+        "timestamp": now_hms,
+        "pac_w": 0,
+        "excess_w": 0,
+        "potential_w": 0,
+        "load_w": 0,
+        "ct_w": 0,
+        "msg": f"Không thể kết nối tới {','.join(hosts)}:{port} ({last_err})"
     }
 
 # ==================== 100% REAL TELEMETRY HISTORY (ZERO FAKE DATA!) ====================
 _state_lock = threading.Lock()
-_latest_live = {"ok": False, "status": "offline", "pac_w": 0, "load_w": 0, "ct_w": 0}
+_gh_sync_lock = threading.Lock()
+_latest_live = {
+    "ok": False,
+    "status": "offline",
+    "pac_w": 0,
+    "excess_w": 0,
+    "potential_w": 0,
+    "load_w": 0,
+    "ct_w": 0,
+    "msg": "Đang khởi động kết nối biến tần INVT..."
+}
 _day_history = []
 _day_date = ""
+
+HISTORY_GH_TOKEN = os.environ.get("HISTORY_GH_TOKEN", "").strip()
+HISTORY_GH_REPO = os.environ.get("HISTORY_GH_REPO", "adlsviettel/solar-tu-nguyen-data").strip()
+
+def _gh_headers():
+    return {
+        "Authorization": f"token {HISTORY_GH_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "SolarTuNguyenCloud",
+        "Content-Type": "application/json",
+    }
+
+def _gh_pull_recent_history():
+    """Restores recorded daily JSON history from private GitHub storage on cloud boot."""
+    if not HISTORY_GH_TOKEN or not HISTORY_GH_REPO:
+        return
+    try:
+        req = urllib.request.Request(
+            f"https://api.github.com/repos/{HISTORY_GH_REPO}/contents/history",
+            headers=_gh_headers(),
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            items = json.loads(r.read().decode("utf-8"))
+        if not isinstance(items, list):
+            return
+        today_name = f"day_{vn_now().strftime('%Y-%m-%d')}.json"
+        for it in sorted(items, key=lambda x: x.get("name", ""))[-35:]:
+            name = it.get("name", "")
+            if not (name.startswith("day_") and name.endswith(".json")):
+                continue
+            local_fp = os.path.join(HISTORY_DIR, name)
+            if os.path.exists(local_fp) and name != today_name:
+                continue
+            dl_url = it.get("url") or it.get("download_url")
+            if not dl_url:
+                continue
+            dl_headers = dict(_gh_headers())
+            dl_headers["Accept"] = "application/vnd.github.raw"
+            raw_bytes = urllib.request.urlopen(urllib.request.Request(dl_url, headers=dl_headers), timeout=10).read()
+            remote_pts = json.loads(raw_bytes.decode("utf-8"))
+            if not isinstance(remote_pts, list):
+                continue
+            with _state_lock:
+                if name == today_name:
+                    global _day_history, _day_date
+                    ds_today = vn_now().strftime("%Y-%m-%d")
+                    merged = {_point_sec(p): p for p in remote_pts}
+                    for p in _day_history:
+                        merged[_point_sec(p)] = p
+                    _day_history = [merged[k] for k in sorted(merged.keys())]
+                    _day_date = ds_today
+                    _write_history_atomic(local_fp, _day_history)
+                else:
+                    _write_history_atomic(local_fp, remote_pts)
+    except Exception:
+        pass
+
+def _gh_push_day_file(date_str: str, pts_snapshot: list):
+    """Persists a day's telemetry JSON snapshot to private GitHub storage asynchronously."""
+    if not HISTORY_GH_TOKEN or not HISTORY_GH_REPO or not date_str or not pts_snapshot:
+        return
+    with _gh_sync_lock:
+        try:
+            api_url = f"https://api.github.com/repos/{HISTORY_GH_REPO}/contents/history/day_{date_str}.json"
+            sha = None
+            try:
+                req = urllib.request.Request(api_url, headers=_gh_headers())
+                with urllib.request.urlopen(req, timeout=10) as r:
+                    sha = json.loads(r.read().decode("utf-8")).get("sha")
+            except urllib.error.HTTPError as e:
+                if e.code != 404:
+                    return
+            content_bytes = json.dumps(pts_snapshot, ensure_ascii=False).encode("utf-8")
+            payload = {
+                "message": f"Sync history {date_str} ({len(pts_snapshot)} pts)",
+                "content": base64.b64encode(content_bytes).decode("ascii"),
+            }
+            if sha:
+                payload["sha"] = sha
+            req = urllib.request.Request(
+                api_url, data=json.dumps(payload).encode("utf-8"), method="PUT", headers=_gh_headers()
+            )
+            urllib.request.urlopen(req, timeout=15)
+        except Exception:
+            pass
+
+def _write_history_atomic(fpath: str, data_list: list):
+    tmp_path = fpath + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data_list, f, ensure_ascii=False)
+    os.replace(tmp_path, fpath)
 
 def _history_path(date_str):
     return os.path.join(HISTORY_DIR, f"day_{date_str}.json")
@@ -312,9 +433,15 @@ def _point_sec(pt):
 
 def _load_today_history():
     global _day_history, _day_date
-    today = time.strftime("%Y-%m-%d")
+    today = vn_now().strftime("%Y-%m-%d")
     if _day_date == today:
         return
+    if _day_date and _day_history:
+        _save_today_history()
+        if HISTORY_GH_TOKEN:
+            threading.Thread(
+                target=_gh_push_day_file, args=(_day_date, list(_day_history)), daemon=True
+            ).start()
     _day_history = []
     _day_date = today
     fpath = _history_path(today)
@@ -331,8 +458,7 @@ def _save_today_history():
     if not _day_date:
         return
     try:
-        with open(_history_path(_day_date), "w", encoding="utf-8") as f:
-            json.dump(_day_history, f, ensure_ascii=False)
+        _write_history_atomic(_history_path(_day_date), _day_history)
     except Exception:
         pass
 
@@ -443,11 +569,12 @@ def _auto_calc_day_excess(day_pts):
     return out
 
 def _query_history_range(from_str, to_str):
-    today_str = time.strftime("%Y-%m-%d")
+    today_date = vn_now().date()
+    today_str = today_date.strftime("%Y-%m-%d")
     try:
-        d0 = datetime.datetime.strptime(from_str, "%Y-%m-%d").date() if from_str else datetime.date.today()
+        d0 = datetime.datetime.strptime(from_str, "%Y-%m-%d").date() if from_str else today_date
     except Exception:
-        d0 = datetime.date.today()
+        d0 = today_date
     try:
         d1 = datetime.datetime.strptime(to_str, "%Y-%m-%d").date() if to_str else d0
     except Exception:
@@ -501,17 +628,20 @@ def _bg_poll_loop():
     """Polls inverter every 2s and records 100% genuine 15-second telemetry samples."""
     global _latest_live
     last_save_ts = 0.0
+    last_gh_push_ts = 0.0
+    consec_fail = 0
     while True:
         t0 = time.time()
         try:
             cfg = load_config()
             data = poll_invt_live(cfg)
             with _state_lock:
+                _load_today_history()
                 if data.get("status") in ("online", "demo"):
-                    _load_today_history()
-                    now_lt = time.localtime()
-                    bucket_sec = now_lt.tm_hour * 3600 + now_lt.tm_min * 60 + (now_lt.tm_sec // 15) * 15
-                    t_str = f"{now_lt.tm_hour:02d}:{now_lt.tm_min:02d}:{(now_lt.tm_sec // 15) * 15:02d}"
+                    consec_fail = 0
+                    now_lt = vn_now()
+                    bucket_sec = now_lt.hour * 3600 + now_lt.minute * 60 + (now_lt.second // 15) * 15
+                    t_str = f"{now_lt.hour:02d}:{now_lt.minute:02d}:{(now_lt.second // 15) * 15:02d}"
                     pt = {
                         "s": bucket_sec,
                         "m": bucket_sec // 60,
@@ -528,9 +658,17 @@ def _bg_poll_loop():
                             last_save_ts = time.time()
                     else:
                         _day_history[-1] = pt
+                    if HISTORY_GH_TOKEN and (time.time() - last_gh_push_ts > 180) and _day_history:
+                        last_gh_push_ts = time.time()
+                        threading.Thread(
+                            target=_gh_push_day_file, args=(_day_date, list(_day_history)), daemon=True
+                        ).start()
                     data["excess_today_kwh"] = _compute_day_kwh(_auto_calc_day_excess(_day_history))["excess_kwh"]
-                if data.get("ok") or _latest_live.get("status") == "offline":
                     _latest_live = data
+                else:
+                    consec_fail += 1
+                    if consec_fail >= 4 or _latest_live.get("status") == "offline":
+                        _latest_live = data
         except Exception:
             pass
         elapsed = time.time() - t0
@@ -550,6 +688,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Cache-Control", "no-store, no-cache, must-revalidate")
 
+    def _send_json(self, payload, status=200):
+        self.send_response(status)
+        self._send_cors()
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.end_headers()
+        self.wfile.write(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
+
     def do_OPTIONS(self):
         self.send_response(200)
         self._send_cors()
@@ -563,20 +708,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             self.wfile.write(get_web_html().encode("utf-8"))
+        elif parsed.path in ("/api/ping", "/healthz"):
+            self._send_json({"ok": True, "ts": vn_now().strftime("%H:%M:%S")})
         elif parsed.path == "/api/config":
-            self.send_response(200)
-            self._send_cors()
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(json.dumps(load_config()).encode("utf-8"))
+            self._send_json(load_config())
         elif parsed.path == "/api/live":
             with _state_lock:
                 payload = dict(_latest_live)
-            self.send_response(200)
-            self._send_cors()
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(json.dumps(payload).encode("utf-8"))
+            self._send_json(payload)
         elif parsed.path == "/api/history":
             qs = parse_qs(parsed.query)
             from_q = qs.get("from", [None])[0]
@@ -584,11 +723,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             with _state_lock:
                 _load_today_history()
                 res_hist = _query_history_range(from_q or _day_date, to_q or from_q or _day_date)
-            self.send_response(200)
-            self._send_cors()
-            self.send_header("Content-Type", "application/json; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(json.dumps(res_hist).encode("utf-8"))
+            self._send_json(res_hist)
         elif parsed.path == "/manifest.json":
             manifest = {
                 "name": "Solar Tú Nguyễn Pro 2s",
@@ -619,11 +754,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             cfg = load_config()
             cfg.update(new_cfg)
             save_config(cfg)
-            self.send_response(200)
+            self._send_json({"status": "ok", "config": cfg})
+        else:
+            self.send_response(404)
             self._send_cors()
-            self.send_header("Content-Type", "application/json; charset=utf-8")
             self.end_headers()
-            self.wfile.write(json.dumps({"status": "ok", "config": cfg}).encode("utf-8"))
 
 if __name__ == "__main__":
     import sys
@@ -631,14 +766,16 @@ if __name__ == "__main__":
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
+    if HISTORY_GH_TOKEN:
+        threading.Thread(target=_gh_pull_recent_history, daemon=True).start()
     t = threading.Thread(target=_bg_poll_loop, daemon=True)
     t.start()
     PORT = int(os.environ.get("PORT", 8088))
     server = ThreadingHTTPServer(("0.0.0.0", PORT), DashboardHandler)
     url = f"http://localhost:{PORT}"
     print("============================================================")
-    print("  SOLAR TU NGUYEN PRO - REALTIME 2s WEB DASHBOARD (100% REAL):")
-    print(f"  -> {url}")
+    print("  SOLAR TU NGUYEN PRO - REALTIME 2s WEB DASHBOARD (24/7):")
+    print(f"  -> {url} (VN Time: {vn_now().strftime('%Y-%m-%d %H:%M:%S')})")
     print("============================================================")
     try:
         server.serve_forever()
