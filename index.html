@@ -698,6 +698,10 @@
 
 <script>
   let apiBase = '';
+  let resolvingBase = false;
+  let historyLoaded = false;
+  let pollFailCount = 0;
+  let lastResolveTs = 0;
   let chartInst = null;
   let rangePoints = [];
   let rangeDays = [];
@@ -730,51 +734,95 @@
   function openSettings() { document.getElementById('settingsModal').classList.add('open'); }
   function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
 
-  async function resolveApiBase() {
+  async function probeEndpoint(base, timeoutMs) {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const r = await fetch(base + '/api/live', { mode: 'cors', signal: ctrl.signal });
+      clearTimeout(tid);
+      if (r.ok) return base;
+    } catch (e) {
+      clearTimeout(tid);
+    }
+    return null;
+  }
+
+  async function resolveApiBase(triggerLoad = true) {
     if (!location.hostname.endsWith('github.io')) {
       apiBase = '';
-      return;
+      return true;
     }
+    if (resolvingBase) return Boolean(apiBase);
+    resolvingBase = true;
+    lastResolveTs = Date.now();
     try {
-      const r = await fetch('https://raw.githubusercontent.com/adlsviettel/solar-tu-nguyen/main/endpoints.json?t=' + Date.now(), { cache: 'no-store' });
-      const ep = await r.json();
-      const candidates = [ep.tunnel_url, ep.cloud_url, 'https://solar-tu-nguyen.onrender.com'].filter(Boolean);
-      for (const base of candidates) {
-        try {
-          const ctrl = new AbortController();
-          const tid = setTimeout(() => ctrl.abort(), 3500);
-          const test = await fetch(base + '/api/live', { mode: 'cors', signal: ctrl.signal });
-          clearTimeout(tid);
-          if (test.ok) { apiBase = base; return; }
-        } catch (e) {}
+      let candidates = ['https://solar-tu-nguyen.onrender.com'];
+      try {
+        const r = await fetch('https://raw.githubusercontent.com/adlsviettel/solar-tu-nguyen/main/endpoints.json?t=' + Date.now(), { cache: 'no-store' });
+        const ep = await r.json();
+        candidates = [ep.cloud_url, 'https://solar-tu-nguyen.onrender.com', ep.tunnel_url].filter(Boolean);
+      } catch (e) {}
+      const uniq = Array.from(new Set(candidates.map(u => String(u).replace(/\/+$/, ''))));
+      for (const base of uniq) {
+        const timeoutMs = base.includes('onrender.com') ? 14000 : 3500;
+        const okBase = await probeEndpoint(base, timeoutMs);
+        if (okBase) {
+          const changed = apiBase !== okBase;
+          apiBase = okBase;
+          pollFailCount = 0;
+          if (triggerLoad && (changed || !historyLoaded)) {
+            loadConfig();
+            applyRange(true);
+          }
+          return true;
+        }
       }
-    } catch (e) {}
+      apiBase = '';
+      document.getElementById('statusText').innerText = 'ĐANG ĐÁNH THỨC CLOUD...';
+      document.getElementById('statusDot').style.background = '#f59e0b';
+      return false;
+    } finally {
+      resolvingBase = false;
+    }
   }
 
   // ==================== LIVE 2S TELEMETRY UPDATE ====================
   async function pollLive() {
+    if (location.hostname.endsWith('github.io') && !apiBase) {
+      if (!resolvingBase && Date.now() - lastResolveTs > 3500) {
+        resolveApiBase();
+      }
+      return;
+    }
     try {
       const r = await fetch(apiBase + '/api/live', { mode: 'cors' });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const d = await r.json();
+      pollFailCount = 0;
       updateLiveUI(d);
     } catch (e) {
-      document.getElementById('statusText').innerText = 'ĐANG KẾT NỐI...';
+      pollFailCount += 1;
+      document.getElementById('statusText').innerText = location.hostname.endsWith('github.io') ? 'ĐANG KẾT NỐI CLOUD...' : 'ĐANG KẾT NỐI...';
       document.getElementById('statusDot').style.background = '#f59e0b';
+      if (location.hostname.endsWith('github.io') && pollFailCount >= 3) {
+        apiBase = '';
+        resolveApiBase();
+      }
     }
   }
 
   function updateLiveUI(d) {
     const stTxt = document.getElementById('statusText');
     const dot = document.getElementById('statusDot');
+    const tsTag = d.timestamp ? (' • ' + d.timestamp) : '';
     if (d.status === 'online') {
-      stTxt.innerText = 'ONLINE 2s';
+      stTxt.innerText = 'ONLINE 2s' + tsTag;
       dot.style.background = '#10b981';
     } else if (d.status === 'demo') {
-      stTxt.innerText = 'MÔ PHỎNG 2s';
+      stTxt.innerText = 'MÔ PHỎNG 2s' + tsTag;
       dot.style.background = '#f59e0b';
     } else {
-      stTxt.innerText = 'OFFLINE';
+      stTxt.innerText = 'OFFLINE' + tsTag;
       dot.style.background = '#ef4444';
     }
 
@@ -995,12 +1043,17 @@
     document.getElementById('inpToDate').value = tDate;
 
     if (fetchRemote) {
+      if (location.hostname.endsWith('github.io') && !apiBase) {
+        renderEChart();
+        return;
+      }
       try {
         const r = await fetch(`${apiBase}/api/history?from=${encodeURIComponent(fDate)}&to=${encodeURIComponent(tDate)}`, { mode: 'cors' });
         if (r.ok) {
           const j = await r.json();
           rangePoints = Array.isArray(j.points) ? j.points : [];
           rangeDays = Array.isArray(j.days) ? j.days : [];
+          historyLoaded = true;
         }
       } catch (e) {}
     }
@@ -1311,13 +1364,19 @@
     document.getElementById('inpToDate').value = today;
 
     try { applyTheme(localStorage.getItem('solar_theme') || 'light'); } catch (e) {}
-    await resolveApiBase();
+    await resolveApiBase(false);
     await loadConfig();
     await applyRange(true);
     await pollLive();
 
     setInterval(pollLive, 2000);
-    setInterval(resolveApiBase, 60000);
+    setInterval(() => resolveApiBase(true), 60000);
+    setInterval(() => {
+      const todayIso = toIsoDate(new Date());
+      if (document.getElementById('inpToDate').value === todayIso) {
+        applyRange(true);
+      }
+    }, 60000);
   }
 
   window.addEventListener('DOMContentLoaded', initApp);
